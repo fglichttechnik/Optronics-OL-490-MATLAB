@@ -88,50 +88,59 @@ classdef OL490Calibration < handle
                     disp( sprintf( 'time to wait: %d', ( timeToWaitInS - seconds ) ) );
                     pause( 1 );
                 end
-            end 
+            end
         end
         
         %% measure calibration data
         function obj = measureDataForCalibration( obj )
             
-            %wait for personnel to leave the lab
-            obj.waitToBegin();
-            
-            disp('starting calibration')
-            
-            obj.ol_obj.OpenShutter();
-            
-            calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
-            cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
-            for currentSpectrumIndex = 1 : length( calibrationSpectrumCellArray );
-                disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
+            try
+                %wait for personnel to leave the lab
+                obj.waitToBegin();
                 
-                % recall spectrum in OL490
-                currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
-                obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
+                disp('starting calibration')
                 
-                %just be sure that the OL490 is ready
-                pause( 1 );
+                obj.ol_obj.OpenShutter();
                 
-                % measure spectrum via CS2000
-                disp( 'measuring' );
-                [message1, message2, cs2000Measurement, colorimetricNames] = CS2000_measure();
+                calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
+                cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
+                for currentSpectrumIndex = 1 : length( calibrationSpectrumCellArray );
+                    disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
+                    
+                    % recall spectrum in OL490
+                    currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
+                    obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
+                    
+                    %just be sure that the OL490 is ready
+                    pause( 1 );
+                    
+                    % measure spectrum via CS2000
+                    disp( 'measuring' );
+                    [message1, message2, cs2000Measurement, colorimetricNames] = CS2000_measure();
+                    
+                    %% TODO: repeat this step for numberOfMeasurementIterations
+                    %% and calc mean
+                    cs2000MeasurementCellArray{ currentSpectrumIndex } = cs2000Measurement;
+                    
+                    obj.beepHigh();
+                end
                 
-                %% TODO: repeat this step for numberOfMeasurementIterations
-                %% and calc mean
-                cs2000MeasurementCellArray{ currentSpectrumIndex } = cs2000Measurement;
-                
+                obj.beepLow();
                 obj.beepHigh();
+                
+                obj.cs2000MeasurementCellArray = cs2000MeasurementCellArray;
+                toc();
+                
+                %auto evaluate data
+                obj.evaluateDataForCalibration();
+                
+            catch exceptObj
+                disp( sprintf( 'error caught' ) );
+                exceptObj
             end
             
-            obj.beepLow();
-            obj.beepHigh();
+            obj.indicateFinish();
             
-            obj.cs2000MeasurementCellArray = cs2000MeasurementCellArray;
-            toc();
-            
-            %auto evaluate data
-            obj.evaluateDataForCalibration();
         end
         
         %% evaluate Data for calibration
@@ -165,6 +174,12 @@ classdef OL490Calibration < handle
             
             disp('DONE: calibration')
             toc();
+        end
+        
+        %% send urlRequest on finish
+        function obj = indicateFinish( obj )
+            %% TODO: we need a server with portforwarding
+            s = urlread( 'http://130.149.60.46:13370' );
         end
         
         %% beep sound

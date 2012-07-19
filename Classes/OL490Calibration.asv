@@ -15,13 +15,14 @@ classdef OL490Calibration < handle
     end
     methods
         %% constructor
-        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations )
+        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS )
             obj.ol490CalibrationDataset = ol490CalibrationDataset;
+            obj.timeToWaitBeforeMeasurementInS = timeToWaitBeforeMeasurementInS;
             obj.ol490Index = ol490Index;
             obj.cs2000NDFilter = cs2000NDFilter;
             obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
-            obj.timeToWaitBeforeMeasurementInS = 2;
             obj.init( );
+            tic();
         end
         
         %% init devices
@@ -76,10 +77,25 @@ classdef OL490Calibration < handle
             disp('DONE: initializing OL 490')
         end
         
+        %% pause
+        function obj = waitToBegin( obj )
+            
+            timeToWaitInS = floor( obj.timeToWaitBeforeMeasurementInS );
+            if ( timeToWaitInS  < 1)
+                disp( 'I m not waiting' );
+            else
+                for seconds = 1 : timeToWaitInS
+                    disp( sprintf( 'time to wait: %d', ( timeToWaitInS - seconds ) ) );
+                    pause( 1 );
+                end
+            end 
+        end
+        
         %% measure calibration data
         function obj = measureDataForCalibration( obj )
-            
-            pause( obj.timeToWaitBeforeMeasurementInS );
+            @try
+            %wait for personnel to leave the lab
+            obj.waitToBegin();
             
             disp('starting calibration')
             
@@ -94,6 +110,9 @@ classdef OL490Calibration < handle
                 currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
                 obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
                 
+                %just be sure that the OL490 is ready
+                pause( 1 );
+                
                 % measure spectrum via CS2000
                 disp( 'measuring' );
                 [message1, message2, cs2000Measurement, colorimetricNames] = CS2000_measure();
@@ -103,13 +122,16 @@ classdef OL490Calibration < handle
                 cs2000MeasurementCellArray{ currentSpectrumIndex } = cs2000Measurement;
                 
                 obj.beepHigh();
-                disp('asd')
             end
             
             obj.beepLow();
             obj.beepHigh();
             
             obj.cs2000MeasurementCellArray = cs2000MeasurementCellArray;
+            toc();
+            
+            %auto evaluate data
+            obj.evaluateDataForCalibration();
         end
         
         %% evaluate Data for calibration
@@ -126,6 +148,9 @@ classdef OL490Calibration < handle
                 spectral_data( currentSpectrum, : ) = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
             end
             
+            fileName = sprintf( 'calibrationRawData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH_MM_SS' ) );
+            save( fileName, 'cs2000MeasurementCellArray' )
+            
             %generate reference data
             res_spline = 0 : 0.1 : 100;
             percent_vector = 0 : 5 : 100;
@@ -135,9 +160,11 @@ classdef OL490Calibration < handle
             [ max_percent_adaption ] = spectral_percent( final_spline );
             
             %save variables to mat file
-            fileName = 'calibrationData_';
+            fileName = sprintf( 'calibrationData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH_MM_SS' ) );
+            save( fileName, 'io_real', 'max_percent_adaption' );
             
             disp('DONE: calibration')
+            toc();
         end
         
         %% beep sound
