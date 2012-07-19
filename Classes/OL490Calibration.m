@@ -22,6 +22,7 @@ classdef OL490Calibration < handle
             obj.cs2000NDFilter = cs2000NDFilter;
             obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
             obj.init( );
+            tic();
         end
         
         %% init devices
@@ -76,10 +77,25 @@ classdef OL490Calibration < handle
             disp('DONE: initializing OL 490')
         end
         
+        %% pause
+        function obj = waitToBegin( obj )
+            
+            timeToWaitInS = floor( obj.timeToWaitBeforeMeasurementInS );
+            if ( timeToWaitInS  < 1)
+                disp( 'I m not waiting' );
+            else
+                for seconds = 1 : timeToWaitInS
+                    disp( sprintf( 'time to wait: %d', ( timeToWaitInS - seconds ) ) );
+                    pause( 1 );
+                end
+            end 
+        end
+        
         %% measure calibration data
         function obj = measureDataForCalibration( obj )
             
-            pause( obj.timeToWaitBeforeMeasurementInS );
+            %wait for personnel to leave the lab
+            obj.waitToBegin();
             
             disp('starting calibration')
             
@@ -93,6 +109,9 @@ classdef OL490Calibration < handle
                 % recall spectrum in OL490
                 currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
                 obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
+                
+                %just be sure that the OL490 is ready
+                pause( 1 );
                 
                 % measure spectrum via CS2000
                 disp( 'measuring' );
@@ -109,6 +128,7 @@ classdef OL490Calibration < handle
             obj.beepHigh();
             
             obj.cs2000MeasurementCellArray = cs2000MeasurementCellArray;
+            toc();
             
             %auto evaluate data
             obj.evaluateDataForCalibration();
@@ -144,6 +164,7 @@ classdef OL490Calibration < handle
             save( fileName, 'io_real', 'max_percent_adaption' );
             
             disp('DONE: calibration')
+            toc();
         end
         
         %% beep sound
