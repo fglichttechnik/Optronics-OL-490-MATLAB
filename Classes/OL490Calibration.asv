@@ -1,0 +1,92 @@
+%author Jan Winter TU Berlin
+%email j.winter@tu-berlin.de
+
+classdef OL490Calibration < handle
+    %% properties
+    properties
+        ol_obj                          % handle to OL490
+        numberOfMeasurementIterations   % number of repetitions per light level
+        calibrationDataset              % 0 = 150µm, 1 = 350µm, 2 = 500µm, 3 = 750µm
+        calibrationSpectrumCellArray    % cell array with calibration spectrum 0%-100% in 5% steps
+    end 
+    methods
+        %% constructor
+        function obj = OL490Calibration( calibrationDataset, numberOfMeasurementIterations )
+            obj.calibrationDataset = calibrationDataset;
+            obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
+        end
+        
+        %% init devices
+        function obj = init( obj )
+            obj.initCS2000();
+            obj.initOL490();
+        end
+        
+        %% disconnect devices
+        function obj = terminate( obj )
+            obj.CS2000_terminateConnection();
+            %obj.initOL490(); %% TODO:implement disconnect
+        end
+        
+        %% init CS2000
+        function obj = initCS2000( obj )
+            disp('initializing CS2000')
+            CS2000_initConnection();
+            disp('DONE: initializing CS2000')
+        end
+        
+        %% init OL490
+        function obj = initOL490( obj )
+            disp('initializing OL 490')
+            cur = what;
+            path = cur.path;
+            NET.addAssembly([path '\dll\OLIPluginLibrary.dll'])
+            NET.addAssembly([path '\dll\OL490LIB.dll'])
+            NET.addAssembly([path '\dll\OL490_SDK_Dll.dll'])
+            NET.addAssembly([path '\dll\CyUSB.dll'])
+            obj.ol_obj = OL490_SDK_Dll.OL490SdkLibrary();
+            obj.ol_obj.CloseShutter();
+            obj.ol_obj.LoadAndUseStoredCalibration( obj.calibrationDataset );
+
+            disp('DONE: initializing OL 490')
+        end
+        
+        %% measure calibration file
+        function obj = startCalibration( obj )
+            disp('starting calibration')
+            
+            %TODO: create / load spectra for OL490
+            %for spectrum in spectra do:
+            currentSpectrum = ones( 1024, 1 ) * 5000;%49152
+            wavelengths = linspace( 0, 1023, 1024 );
+        for spectralLine = 1 : length( currentSpectrum )
+            obj.ol_obj.TurnOnColumn( int64( currentSpectrum( spectralLine ) ) )
+        end
+            obj.ol_obj.OpenShutter()
+            % recall spectrum in OL490
+            
+            % measure spectrum
+            %CS2000_measure()
+            
+            disp('DONE: calibration')
+        end
+        
+        %% calibration spectrum
+        function value = get.calibrationSpectrumCellArray( obj )
+            if ( isempty( obj.calibrationSpectrumCellArray ) )
+                calibrationSpectrumCellArray = cell( 21, 1 );
+                OL490_MAX_VALUE = 49152;
+                currentDimValue = 0;    %will increase by 
+                
+                for currentSpectrumIndex = 1 : 21
+                    calibrationSpectrumCellArray{ currentSpectrumIndex } = ones( 1024, 1 ) * 49152;
+                end
+                
+                obj.calibrationSpectrumCellArray = calibrationSpectrumCellArray;
+                
+            end
+            value = obj.calibrationSpectrumCellArray;
+        end
+        
+    end
+end
