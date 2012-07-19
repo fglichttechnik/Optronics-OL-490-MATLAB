@@ -1,3 +1,5 @@
+clear all;
+
 %% set your parameters here
 numberOfMeasurementIterations = 1;   % number of repetitions per light level
 ol490CalibrationDataset = 1;         % 0 = 150µm, 1 = 350µm, 2 = 500µm, 3 = 750µm
@@ -8,3 +10,4 @@ cs2000NDFilter = 0;                  % 0, 10, 100 ND Filter %0 => 0, 10 => 1, 10
 %% nothing to be done below
 OL490CalibrationInstance = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS );
 OL490CalibrationInstance.measureDataForCalibration();
+OL490CalibrationInstance.disconnect();

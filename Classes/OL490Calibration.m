@@ -128,6 +128,9 @@ classdef OL490Calibration < handle
                 spectral_data( currentSpectrum, : ) = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
             end
             
+            fileName = sprintf( 'calibrationRawData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH_MM_SS' ) );
+            save( fileName, 'cs2000MeasurementCellArray' )
+            
             %generate reference data
             res_spline = 0 : 0.1 : 100;
             percent_vector = 0 : 5 : 100;
@@ -137,7 +140,7 @@ classdef OL490Calibration < handle
             [ max_percent_adaption ] = spectral_percent( final_spline );
             
             %save variables to mat file
-            fileName = sprintf( 'calibrationData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH:MM:SS' ) );
+            fileName = sprintf( 'calibrationData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH_MM_SS' ) );
             save( fileName, 'io_real', 'max_percent_adaption' );
             
             disp('DONE: calibration')
