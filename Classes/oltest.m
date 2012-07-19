@@ -1,10 +1,10 @@
 %OL490
 cur = what;
 path = cur.path;
-NET.addAssembly([path '\dll\OLIPluginLibrary.dll']);
-NET.addAssembly([path '\dll\OL490LIB.dll']);
-NET.addAssembly([path '\dll\OL490_SDK_Dll.dll']);
-NET.addAssembly([path '\dll\CyUSB.dll']);
+OLIPluginLibrary = NET.addAssembly([path '\dll\OLIPluginLibrary.dll']);
+OL490LIB = NET.addAssembly([path '\dll\OL490LIB.dll']);
+OL490_SDK_Dll = NET.addAssembly([path '\dll\OL490_SDK_Dll.dll']);
+CyUSB = NET.addAssembly([path '\dll\CyUSB.dll']);
 ol_obj = OL490_SDK_Dll.OL490SdkLibrary();
 ol_obj.ConnectToOL490(0)
 ol_obj.CloseShutter;
@@ -48,3 +48,21 @@ Returns : OL490NotConnectedError	- OL490 not connected
 There are two methods to download renderings to the OL490.  One method is to send them ‘live’ to the unit without using the RAM built into the OL490.  This limits the max speed of the renderings, but keeps you from having to deal with the need to work with the start, stop, and pause triggering options.  The other method is to download the renderings to the RAM.  Once the data is in RAM, you have complete control to repeat the sequence that is downloaded over and over and over again.
 
 
+%generate reference data
+res_spline = 0 : 0.1 : 100;
+percent_vector = 0 : 5 : 100;
+    [ first_spline ] = percent_spline( spectral_data, percent_vector, res_spline);
+    [ final_spline ] = nm_spline( first_spline );
+    [ io_real ] = io_real_gen( final_spline );
+    [ max_percent_adaption ] = spectral_percent( final_spline );
+   
+    
+    checkbox = get(handles.save_file_check,'Value');
+    if checkbox == 1
+        %save data
+        cd (output_path)
+        %outputfile = [io_real;max_percent_adaption];
+        %dlmwrite('OL490_reference_data.csv',outputfile,'delimiter',';');
+        csvwrite('ol490_io_real.csv',io_real);
+        csvwrite('ol490_max_percent_adaption.csv',max_percent_adaption);
+    end    

@@ -1,0 +1,4 @@
+
+%        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations )
+o = OL490Calibration( 1, 0, 0, 1 );
+o.measureDataForCalibration()
