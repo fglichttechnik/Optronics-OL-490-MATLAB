@@ -135,8 +135,9 @@ classdef OL490Calibration < handle
                 obj.evaluateDataForCalibration();
                 
             catch exceptObj
-                disp( sprintf( 'error caught' ) );
-                exceptObj
+                disp( sprintf( 'error caught %s', exceptObj.message ) );
+                exceptObj                
+                exceptObj.stack
             end
             
             obj.indicateFinish();
@@ -179,7 +180,13 @@ classdef OL490Calibration < handle
         %% send urlRequest on finish
         function obj = indicateFinish( obj )
             %% TODO: we need a server with portforwarding
-            s = urlread( 'http://130.149.60.46:13370' );
+            try
+                s = urlread( 'http://130.149.60.46:13370' );
+            catch exceptObj
+                disp( sprintf( 'error caught %s', exceptObj.message ) );
+                exceptObj                
+                exceptObj.stack
+            end
         end
         
         %% beep sound
