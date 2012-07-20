@@ -1,21 +1,21 @@
 classdef OL490SpectrumGenerator < handle
 
 properties
-	spectrum 	% this is the requested spectrum to generate OL490 adapted data for
+	targetSpectrum 	% this is the requested spectrum to generate OL490 adapted data for
 	dimLevels 	% these is (are) the desired dimLevel (s)
 	ol490AdaptedSpectrum 	% this is the adapted spectrum based on the calibration data
 end
 
 methods
 	%% constructor
-	function obj = OL490SpectrumGenerator( spectrum, dimLevels )
-		obj.spectrum = spectrum;
+	function obj = OL490SpectrumGenerator( targetSpectrum, dimLevels )
+		obj.targetSpectrum = targetSpectrum;
 		obj.dimLevels = dimLevels;
 	end
 	
 	%% calculate luminances
 	%% TODO: implement this calculate this based on the calibration data
-	function [ obj, luminance ] = calclLuminanceForSpectrum( obj, spectrum )
+	function [ obj, luminance ] = calcLuminanceForSpectrum( obj, spectrum )
 	end
 	
 	%% get dimLevel for luminance
@@ -28,6 +28,7 @@ methods
 		
 		if( isempty( obj.ol490AdaptedSpectrum ) )
 			%% TODO: implement spectrum generation
+            % marians code shall be called here
 		
 		end
 	
