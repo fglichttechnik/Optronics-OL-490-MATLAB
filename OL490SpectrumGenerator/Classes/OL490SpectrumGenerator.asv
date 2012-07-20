@@ -1,0 +1,52 @@
+%author Jan Winter TU Berlin
+%email j.winter@tu-berlin.de
+
+classdef OL490SpectrumGenerator < handle
+
+properties
+	targetSpectrum 	% this is the requested spectrum to generate OL490 adapted data for
+	dimLevels 	% these is (are) the desired dimLevel (s)
+	ol490AdaptedSpectra 	% this is the adapted spectrum based on the calibration data for each dimLevel
+    filePathToRawData   % filePath to calibration data
+end
+
+methods
+	%% constructor
+	function obj = OL490SpectrumGenerator( targetSpectrum, dimLevels, filePathToRawData )
+		obj.targetSpectrum = targetSpectrum;
+		obj.dimLevels = dimLevels;
+        obj.filePathToRawData = filePathToRawData;
+    end
+	
+	%% get dimLevel for luminance
+	%% TODO: implement this return closest match dim factor for spectrum
+	function [ obj, adjustedSpectrum ] = adjustedSpectrumForLuminance( obj, luminance )
+	end
+	
+	%% create adapted spectrum on demand
+	function value = get.ol490AdaptedSpectrum( obj )
+		
+		if( isempty( obj.ol490AdaptedSpectrum ) )
+			%% TODO: implement spectrum generation
+            % marians code shall be called here
+            
+            % load calibration data
+            load obj.filePathToRawData;
+            
+            %create adjustedSpectrum for each dimLevel
+            numberOfDimLevels = length( obj.dimLevels );
+            ol490AdaptedSpectra = cell( numberOfDimLevels, 1 );
+            for dimLevel = 1 : numberOfDimLevels
+                adjustedSpectrumForDimLevel = spec_adaption();
+                OL490AdjustedSpectrum(  );
+                ol490AdaptedSpectra{ dimLevel } = 
+            end
+            
+            obj.ol490AdaptedSpectra = ol490AdaptedSpectra;
+            
+		end
+	
+		value = obj.ol490AdaptedSpectrum;
+	end
+end
+end

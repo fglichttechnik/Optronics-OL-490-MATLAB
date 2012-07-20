@@ -4,7 +4,7 @@
 classdef OL490Calibration < handle
     %% properties
     properties
-        ol_obj                          % handle to OL490
+        ol490Controller                 % controller for ol490
         numberOfMeasurementIterations   % number of repetitions per light level
         ol490CalibrationDataset         % 0 = 150µm, 1 = 350µm, 2 = 500µm, 3 = 750µm
         ol490Index                      % index of ol490 0, 1...
@@ -12,15 +12,17 @@ classdef OL490Calibration < handle
         timeToWaitBeforeMeasurementInS  % time to leave the lab
         cs2000MeasurementCellArray      % created by startcalibration measurements
         cs2000NDFilter                  % 0, 10, 100 ND Filter %0 => 0, 10 => 1, 100 => 2
+        sendProgressToURL               % if 1, update RSS feed is called via URL
     end
     methods
         %% constructor
-        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS )
+        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, sendProgressToURL )
             obj.ol490CalibrationDataset = ol490CalibrationDataset;
             obj.timeToWaitBeforeMeasurementInS = timeToWaitBeforeMeasurementInS;
             obj.ol490Index = ol490Index;
             obj.cs2000NDFilter = cs2000NDFilter;
             obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
+            obj.sendProgressToURL = sendProgressToURL;
             obj.init( );
             tic();
         end
@@ -49,30 +51,9 @@ classdef OL490Calibration < handle
         function obj = initOL490( obj )
             disp('initializing OL 490')
             
-            path = 'C:\Programme\GoochandHousego\OL 490 SDK\';
-            NET.addAssembly([path 'OLIPluginLibrary.dll']);
-            NET.addAssembly([path 'OL490LIB.dll']);
-            NET.addAssembly([path 'OL490_SDK_Dll.dll']);
-            NET.addAssembly([path 'CyUSB.dll']);
-            
-            ol_obj = OL490_SDK_Dll.OL490SdkLibrary()
-            ol_obj.ConnectToOL490( obj.ol490Index )
-            result = ol_obj.CloseShutter()
-            disp( sprintf( 'result of operation: %s', char( result ) ) );
-            ol_obj.LoadAndUseStoredCalibration( obj.ol490CalibrationDataset );
-            
-            OL490SerialNumber = ol_obj.GetOL490SerialNumber();
-            disp( sprintf( 'OL490SerialNumber: %s', char( OL490SerialNumber ) ) );
-            OL490FirmwareVersion = ol_obj.GetFirmwareVersion();
-            disp( sprintf( 'OL490FirmwareVersion: %s', char( OL490FirmwareVersion ) ) );
-            OL490FlashVersion = ol_obj.GetFlashVersion();
-            disp( sprintf( 'OL490FlashVersion: %s', char( OL490FlashVersion ) ) );
-            OL490FPGAVersion = ol_obj.GetFPGAVersion();
-            disp( sprintf( 'OL490FPGAVersion: %s', char( OL490FPGAVersion ) ) );
-            OL490NumberOfStoredCalibrations = ol_obj.GetNumberOfStoredCalibrations();
-            disp( sprintf( 'OL490NumberOfStoredCalibrations: %s', char( OL490NumberOfStoredCalibrations ) ) );
-            
-            obj.ol_obj = ol_obj;
+            ol490Controller = OL490Controller( obj.ol490Index, obj.ol490CalibrationDataset );
+            ol490Controller.init();
+            obj.ol490Controller = ol490Controller;
             
             disp('DONE: initializing OL 490')
         end
@@ -88,50 +69,60 @@ classdef OL490Calibration < handle
                     disp( sprintf( 'time to wait: %d', ( timeToWaitInS - seconds ) ) );
                     pause( 1 );
                 end
-            end 
+            end
         end
         
         %% measure calibration data
         function obj = measureDataForCalibration( obj )
-            @try
-            %wait for personnel to leave the lab
-            obj.waitToBegin();
             
-            disp('starting calibration')
-            
-            obj.ol_obj.OpenShutter();
-            
-            calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
-            cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
-            for currentSpectrumIndex = 1 : length( calibrationSpectrumCellArray );
-                disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
+            try
+                %wait for personnel to leave the lab
+                obj.waitToBegin();
                 
-                % recall spectrum in OL490
-                currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
-                obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
+                disp('starting calibration')
                 
-                %just be sure that the OL490 is ready
-                pause( 1 );
+                bj.ol490Controller.openShutter();
                 
-                % measure spectrum via CS2000
-                disp( 'measuring' );
-                [message1, message2, cs2000Measurement, colorimetricNames] = CS2000_measure();
+                calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
+                cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
+                for currentSpectrumIndex = 1 : length( calibrationSpectrumCellArray );
+                    disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
+                    
+                    % recall spectrum in OL490
+                    currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
+                    obj.ol490Controller.sendSpectrum( currentSpectrum.spectrum );
+                    
+                    %just be sure that the OL490 is ready
+                    pause( 1 );
+                    
+                    % measure spectrum via CS2000
+                    disp( 'measuring' );
+                    [message1, message2, cs2000Measurement, colorimetricNames] = CS2000_measure();
+                    
+                    %% TODO: repeat this step for numberOfMeasurementIterations
+                    %% and calc mean
+                    cs2000MeasurementCellArray{ currentSpectrumIndex } = cs2000Measurement;
+                    
+                    obj.beepHigh();
+                end
                 
-                %% TODO: repeat this step for numberOfMeasurementIterations
-                %% and calc mean
-                cs2000MeasurementCellArray{ currentSpectrumIndex } = cs2000Measurement;
-                
+                obj.beepLow();
                 obj.beepHigh();
+                
+                obj.cs2000MeasurementCellArray = cs2000MeasurementCellArray;
+                toc();
+                
+                %auto evaluate data
+                obj.evaluateDataForCalibration();
+                
+            catch exceptObj
+                disp( sprintf( 'error caught %s', exceptObj.message ) );
+                exceptObj                
+                exceptObj.stack
             end
             
-            obj.beepLow();
-            obj.beepHigh();
+            obj.indicateFinish();
             
-            obj.cs2000MeasurementCellArray = cs2000MeasurementCellArray;
-            toc();
-            
-            %auto evaluate data
-            obj.evaluateDataForCalibration();
         end
         
         %% evaluate Data for calibration
@@ -148,8 +139,9 @@ classdef OL490Calibration < handle
                 spectral_data( currentSpectrum, : ) = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
             end
             
-            fileName = sprintf( 'calibrationRawData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH_MM_SS' ) );
-            save( fileName, 'cs2000MeasurementCellArray' )
+            currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );            
+            %fileName = sprintf( 'calibrationRawData_%s.mat', currentTimeString );
+            %save( fileName, 'cs2000MeasurementCellArray' )
             
             %generate reference data
             res_spline = 0 : 0.1 : 100;
@@ -160,11 +152,29 @@ classdef OL490Calibration < handle
             [ max_percent_adaption ] = spectral_percent( final_spline );
             
             %save variables to mat file
-            fileName = sprintf( 'calibrationData_%s.mat', datestr( now, 'dd-mmm-yyyy_HH_MM_SS' ) );
-            save( fileName, 'io_real', 'max_percent_adaption' );
+            fileName = sprintf( 'calibrationData_%s.mat', currentTimeString );
+            save( fileName, 'io_real', 'max_percent_adaption', 'cs2000MeasurementCellArray' );
             
             disp('DONE: calibration')
             toc();
+        end
+        
+        %% send urlRequest on finish
+        function obj = indicateFinish( obj )
+            
+            %don't do this if not requested
+            if ( ~obj.sendProgressToURL )
+                return
+            end
+            
+            %% TODO: we need a server with portforwarding
+            try
+                s = urlread( 'http://130.149.60.46:13370' );
+            catch exceptObj
+                disp( sprintf( 'error caught %s', exceptObj.message ) );
+                exceptObj                
+                exceptObj.stack
+            end
         end
         
         %% beep sound
@@ -194,7 +204,11 @@ classdef OL490Calibration < handle
                 
                 currentDimValue = 0;    %will increase by 5% each step
                 for currentSpectrumIndex = 1 : 21
-                    calibrationSpectrumCellArray{ currentSpectrumIndex } = ones( 1024, 1 ) * 49152 * currentDimValue;
+                    currentSpectrum = ones( 1024, 1 ) * OL490_MAX_VALUE * currentDimValue;
+                    calibrationSpectrum = OL490CalibrationSpectrum( currentSpectrum, currentDimValue );
+                    calibrationSpectrumCellArray{ currentSpectrumIndex } = calibrationSpectrum;
+                    
+                    %incearse dimValue for next iteration
                     currentDimValue = currentDimValue + 0.05;
                 end
                 
