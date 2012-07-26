@@ -88,12 +88,8 @@ classdef OL490Calibration < handle
                 calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
                 cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
                 
-                % we ignore the 0% measurement and fake a result:
-                cs2000ColorimetricData = CS2000ColorimetricData();
-                cs2000ColorimetricData.Lv = 0;
-                cs2000MeasurementCellArray{ 1 } = CS2000Measurement( clock() , zeros( 401, 1 ) , cs2000ColorimetricData );
-                
-                % make the real measurements for all other dim levels
+                % we ignore the 0% measurement:
+                cs2000MeasurementCellArray{ 1 } = CS2000Measurement( clock() , zeros( 401, 1 ) ,colorimetricData);
                 for currentSpectrumIndex = 2 : length( calibrationSpectrumCellArray );
                     disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
                     
