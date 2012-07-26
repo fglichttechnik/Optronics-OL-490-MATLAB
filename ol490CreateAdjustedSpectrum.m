@@ -7,6 +7,8 @@ filePathToCalibrationData = 'C:\Dokumente und Einstellungen\jaw\Desktop\Developm
 savePathFileName = 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\OL490-Calibration\spectralData.mat'
 
 %% nothing to be done below
+
+%% TODO this is not proper implemented, yet
 ol490SpectrumGeneratorInstance = OL490SpectrumGenerator( targetSpectrum, dimLevels, filePathToCalibrationData );
 ol490SpectrumGeneratorInstance.createAdjustedSpectra();
 save( savePathFileName, 'ol490SpectrumGeneratorInstance' );

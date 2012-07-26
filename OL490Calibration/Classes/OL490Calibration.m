@@ -126,7 +126,7 @@ classdef OL490Calibration < handle
                 
             catch exceptObj
                 disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj                
+                exceptObj
                 exceptObj.stack
             end
             
@@ -144,31 +144,31 @@ classdef OL490Calibration < handle
             numberOfSpectralLines = length( cs2000MeasurementCellArray{ 1 }.spectralData );
             
             spectral_data = zeros( numberOfMeasurements, numberOfSpectralLines );
-            for currentSpectrum = 1 : numberOfMeasurements
-                spectral_data( currentSpectrum, : ) = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
+            for currentSpectrumIndex = 1 : numberOfMeasurements
+                currentSpectrum = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
+                currentSpectrumPercent = currentSpectrum ./ max( currentSpectrum );
+                spectral_data( currentSpectrumIndex, : ) = currentSpectrumPercent;
             end
             
-            currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );            
+            currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );
             %fileName = sprintf( 'calibrationRawData_%s.mat', currentTimeString );
             %save( fileName, 'cs2000MeasurementCellArray' )
             
             %generate reference data
             numberOfDimLevels = obj.numberOfDimLevels;
-                dimStepIncrease = 100 / ( numberOfDimLevels - 1 );
-                
-            res_spline = 0 : 0.1 : 100;
-            percent_vector = 0 : dimStepIncrease : 100;
-            %[ first_spline ] = percent_spline( spectral_data, percent_vector, res_spline);
-            %[ final_spline ] = nm_spline( first_spline );
-            %[ io_real ] = io_real_gen( final_spline );
-            %[ max_percent_adaption ] = spectral_percent( final_spline );
+            dimStepIncrease = 100 / ( numberOfDimLevels - 1 );
             
+            res_spline = 0 : 0.1 : 100;
+            percent_vector = 0 : dimStepIncrease : 100;            
             firstSpline  = percentSpline( dataPercent, PercentResolution );
             secondSpline = nmSpline( firstSpline );
             ioReal       = ioRealGeneration( secondSpline);
-            %[ max_percent_adaption ] = spectral_percent( final_spline );
             
-            %save variables to mat file
+            %save variable to mat file which will be overwritten every time
+            fileName = sprintf( 'calibrationData.mat' );
+            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray' );
+            
+            %save variables to unique mat file
             fileName = sprintf( 'calibrationData_%s.mat', currentTimeString );
             save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray' );
             
@@ -189,7 +189,7 @@ classdef OL490Calibration < handle
                 s = urlread( 'http://130.149.60.46:13370' );
             catch exceptObj
                 disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj                
+                exceptObj
                 exceptObj.stack
             end
         end
