@@ -39,7 +39,7 @@ classdef OL490Controller < handle
             OL490FPGAVersion = ol_obj.GetFPGAVersion();
             disp( sprintf( 'OL490FPGAVersion: %s', char( OL490FPGAVersion ) ) );
             OL490NumberOfStoredCalibrations = ol_obj.GetNumberOfStoredCalibrations();
-            disp( sprintf( 'OL490NumberOfStoredCalibrations: %s', char( OL490NumberOfStoredCalibrations ) ) );
+            disp( sprintf( 'OL490NumberOfStoredCalibrations: %s', num2str( OL490NumberOfStoredCalibrations ) ) );
             
             obj.ol_obj = ol_obj;
         end
@@ -50,7 +50,7 @@ classdef OL490Controller < handle
         end
         
         %% send a spectrum
-        function obj = sendSpectrum( obj, spectrum )
+        function obj = sendSpectrum( obj, currentSpectrum )
             obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
         end
     end

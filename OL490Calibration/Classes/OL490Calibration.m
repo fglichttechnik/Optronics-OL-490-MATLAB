@@ -75,13 +75,13 @@ classdef OL490Calibration < handle
         %% measure calibration data
         function obj = measureDataForCalibration( obj )
             
-            try
+            %try
                 %wait for personnel to leave the lab
                 obj.waitToBegin();
                 
                 disp('starting calibration')
                 
-                bj.ol490Controller.openShutter();
+                obj.ol490Controller.openShutter();
                 
                 calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
                 cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
@@ -89,7 +89,7 @@ classdef OL490Calibration < handle
                     disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
                     
                     % recall spectrum in OL490
-                    currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
+                    currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex }
                     obj.ol490Controller.sendSpectrum( currentSpectrum.spectrum );
                     
                     %just be sure that the OL490 is ready
@@ -115,11 +115,11 @@ classdef OL490Calibration < handle
                 %auto evaluate data
                 obj.evaluateDataForCalibration();
                 
-            catch exceptObj
-                disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj                
-                exceptObj.stack
-            end
+%             catch exceptObj
+%                 disp( sprintf( 'error caught %s', exceptObj.message ) );
+%                 exceptObj                
+%                 exceptObj.stack
+%             end
             
             obj.indicateFinish();
             
