@@ -83,22 +83,18 @@ classdef OL490Calibration < handle
                 
                 disp('starting calibration')
                 
-                obj.ol490Controller.openShutter();
+                bj.ol490Controller.openShutter();
                 
                 calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
                 cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
                 
-                % we ignore the 0% measurement and fake a result:
-                cs2000ColorimetricData = CS2000ColorimetricData();
-                cs2000ColorimetricData.Lv = 0;
-                cs2000MeasurementCellArray{ 1 } = CS2000Measurement( clock() , zeros( 401, 1 ) , cs2000ColorimetricData );
-                
-                % make the real measurements for all other dim levels
+                % we ignore the 0% measurement:
+                cs2000MeasurementCellArray{ 1 } = CS2000Measurement( clock() , zeros( 401, 1 ) ,colorimetricData);
                 for currentSpectrumIndex = 2 : length( calibrationSpectrumCellArray );
                     disp( sprintf( 'sending spectrum %d', currentSpectrumIndex ) );
                     
                     % recall spectrum in OL490
-                    currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex }
+                    currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex };
                     obj.ol490Controller.sendSpectrum( currentSpectrum.spectrum );
                     
                     %just be sure that the OL490 is ready
@@ -126,7 +122,7 @@ classdef OL490Calibration < handle
                 
             catch exceptObj
                 disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj
+                exceptObj                
                 exceptObj.stack
             end
             
@@ -144,31 +140,31 @@ classdef OL490Calibration < handle
             numberOfSpectralLines = length( cs2000MeasurementCellArray{ 1 }.spectralData );
             
             spectral_data = zeros( numberOfMeasurements, numberOfSpectralLines );
-            for currentSpectrumIndex = 1 : numberOfMeasurements
-                currentSpectrum = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
-                currentSpectrumPercent = currentSpectrum ./ max( currentSpectrum );
-                spectral_data( currentSpectrumIndex, : ) = currentSpectrumPercent;
+            for currentSpectrum = 1 : numberOfMeasurements
+                spectral_data( currentSpectrum, : ) = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
             end
             
-            currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );
+            currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );            
             %fileName = sprintf( 'calibrationRawData_%s.mat', currentTimeString );
             %save( fileName, 'cs2000MeasurementCellArray' )
             
             %generate reference data
             numberOfDimLevels = obj.numberOfDimLevels;
-            dimStepIncrease = 100 / ( numberOfDimLevels - 1 );
-            
+                dimStepIncrease = 100 / ( numberOfDimLevels - 1 );
+                
             res_spline = 0 : 0.1 : 100;
-            percent_vector = 0 : dimStepIncrease : 100;            
+            percent_vector = 0 : dimStepIncrease : 100;
+            %[ first_spline ] = percent_spline( spectral_data, percent_vector, res_spline);
+            %[ final_spline ] = nm_spline( first_spline );
+            %[ io_real ] = io_real_gen( final_spline );
+            %[ max_percent_adaption ] = spectral_percent( final_spline );
+            
             firstSpline  = percentSpline( dataPercent, PercentResolution );
             secondSpline = nmSpline( firstSpline );
             ioReal       = ioRealGeneration( secondSpline);
+            %[ max_percent_adaption ] = spectral_percent( final_spline );
             
-            %save variable to mat file which will be overwritten every time
-            fileName = sprintf( 'calibrationData.mat' );
-            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray' );
-            
-            %save variables to unique mat file
+            %save variables to mat file
             fileName = sprintf( 'calibrationData_%s.mat', currentTimeString );
             save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray' );
             
@@ -189,7 +185,7 @@ classdef OL490Calibration < handle
                 s = urlread( 'http://130.149.60.46:13370' );
             catch exceptObj
                 disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj
+                exceptObj                
                 exceptObj.stack
             end
         end

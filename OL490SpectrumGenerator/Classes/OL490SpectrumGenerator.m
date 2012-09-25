@@ -38,7 +38,11 @@ methods
             ol490AdaptedSpectra = cell( numberOfDimLevels, 1 );
             for currentDimLevelIndex = 1 : numberOfDimLevels
                 currentDimLevel = obj.dimLevels( currentDimLevelIndex );
-                adjustedSpectrumForDimLevel = spec_adaption( obj.targetSpectrum, spectral_percent, io_real  );
+                
+                %% TODO ask marian where spectralPercent comes from now
+                adjustedSpectrumForDimLevel = spectrumAdaption( obj.targetSpectrum, spectralPercent, io_real, currentDimLevel )
+
+                %adjustedSpectrumForDimLevel = spec_adaption( obj.targetSpectrum, spectral_percent, io_real  );
                 adjustedSpectrum = OL490AdjustedSpectrum( adjustedSpectrumForDimLevel, currentDimLevel, obj.filePathToCalibrationData  );
                 ol490AdaptedSpectra{ currentDimLevelIndex } = adjustedSpectrum;
             end
