@@ -5,7 +5,7 @@ function [ realValues, Lv ] = spectrumAdaption( userSpectrum, spectralPercent, i
 %   io_real       - matrix generated with OL490-class
 %   dimFactor     - number between 0 and 1 [p.e. 0.543], default is 1
 %   realValues    - adapted vector with ol490-values, from 0 till 49152
-
+Lv = 1;
 OL490MAX = 49152;
 if nargin < 4
     dimFactor = 1;
@@ -69,13 +69,8 @@ for nmPointer = 1 : size( userPercent )
         end
     end
     helper = ( ( valuePointerTwo - 1) / 1000) * OL490MAX;
-    spectralRadianceData( nmPointer ) = spectralPercent( valuePointerTwo, nmPointer );
+    helper
     realValues( nmPointer ) = str2double( sprintf( '%0.0f', helper) );
 end
 realValues = realValues';
-
-%calc luminance for current spectrum
-Lv = calcPhotopicLuminanceFromSpectrum( spectralRadianceData' );
-disp( sprintf( 'luminance of spectrum %3.3f cd/m^2', Lv ) );
-
 
