@@ -41,7 +41,7 @@ methods
             load( obj.filePathToCalibrationData );
             
             %calc maximum possible spectrum for targetSpectrum
-            [ adjustedSpectrum, Lv_max ] = spectrumAdaption( obj.targetSpectrum, max_percent_adaption, io_real, 1 );
+            [ adjustedSpectrum, Lv_max ] = spectrumAdaption( obj.targetSpectrum, max_percent_adaption, io_real, 1, maxValues );
 
             
             obj.ol490AdjustedSpectrum = adjustedSpectrum;

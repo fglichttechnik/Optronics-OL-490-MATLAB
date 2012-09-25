@@ -1,10 +1,11 @@
-function [ realValues, Lv ] = spectrumAdaption( userSpectrum, spectralPercent, ioReal, dimFactor )
+function [ realValues, Lv ] = spectrumAdaption( userSpectrum, spectralPercent, ioReal, dimFactor, maxValues )
 % adapt userSpectrum for ol490 to get a real spectrum
 %   user_spectrum - vector with 1024 columns
 %   spectral_data - matrix generated with OL490-class
 %   io_real       - matrix generated with OL490-class
 %   dimFactor     - number between 0 and 1 [p.e. 0.543], default is 1
 %   realValues    - adapted vector with ol490-values, from 0 till 49152
+%   maxValues     - values to recalculate real value of percentual value (needed for Lv)
 
 OL490MAX = 49152;
 if nargin < 4
@@ -69,7 +70,7 @@ for nmPointer = 1 : size( userPercent )
         end
     end
     helper = ( ( valuePointerTwo - 1) / 1000) * OL490MAX;
-    spectralRadianceData( nmPointer ) = spectralPercent( valuePointerOne, nmPointer );
+    spectralRadianceData( nmPointer ) = spectralPercent( valuePointerOne, nmPointer ) * maxValues( valuePointerOne );
     realValues( nmPointer ) = str2double( sprintf( '%0.0f', helper) );
 end
 realValues = realValues';

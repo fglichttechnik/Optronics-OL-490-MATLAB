@@ -141,19 +141,23 @@ classdef OL490Calibration < handle
         %% evaluate Data for calibration
         function obj = evaluateDataForCalibration( obj )
             
-            measurementCellArray = obj.cs2000MeasurementCellArray;
+            cs2000MeasurementCellArray = obj.cs2000MeasurementCellArray;
             
             %prepare data for function
-            numberOfMeasurements = length( measurementCellArray );
-            numberOfSpectralLines = length( measurementCellArray{ 1 }.spectralData );
+            numberOfMeasurements = length( cs2000MeasurementCellArray );
+            numberOfSpectralLines = length( cs2000MeasurementCellArray{ 1 }.spectralData );
             
             spectral_data = zeros( numberOfMeasurements, numberOfSpectralLines );
             maxValues = zeros( numberOfMeasurements, 1 );
             for currentSpectrumIndex = 1 : numberOfMeasurements
-                currentSpectrum = measurementCellArray{ currentSpectrumIndex }.spectralData;
+                currentSpectrum = cs2000MeasurementCellArray{ currentSpectrumIndex }.spectralData;
                 maxValue = max( currentSpectrum );
                 maxValues( currentSpectrumIndex ) = maxValue;
-                currentSpectrumPercent = currentSpectrum ./ maxValue;
+                if( maxValue )
+                    currentSpectrumPercent = currentSpectrum ./ maxValue;
+                else
+                    currentSpectrumPercent = currentSpectrum;
+                end
                 spectral_data( currentSpectrumIndex, : ) = currentSpectrumPercent;
             end
             
@@ -161,27 +165,36 @@ classdef OL490Calibration < handle
             %fileName = sprintf( 'calibrationRawData_%s.mat', currentTimeString );
             %save( fileName, 'cs2000MeasurementCellArray' )
             
-            %% Hack: we currently do only one calibration
-            dataPercent = spectral_data( 1 );
-            
             %generate reference data
             numberOfDimLevels = obj.numberOfDimLevels;
             dimStepIncrease = 100 / ( numberOfDimLevels - 1 );
             
-            res_spline = 0 : 0.1 : 100;
-            percent_vector = 0 : dimStepIncrease : 100;            
-            firstSpline  = percentSpline( dataPercent, percent_vector );
-            secondSpline = nmSpline( firstSpline );
-            ioReal       = ioRealGeneration( secondSpline);
+            %res_spline = 0 : 0.1 : 100;
+            %percent_vector = 0 : dimStepIncrease : 100; 
+            percentResolution   = 0 : 0.1 : 100;
+            prctSpline  = percentSpline( spectral_data, percentResolution );
+            maxValues  = percentSpline( maxValues, percentResolution );     %interpolate the maxValues as well
+            max_percent_adaption = nmSpline( prctSpline );
+            io_real  = ioRealGeneration( max_percent_adaption );
+            
+            %old
+            %generate reference data\
+           % res_spline = 0 : 0.1 : 100;\
+           % percent_vector = 0 : 5 : 100;\
+           % [ first_spline ] = percent_spline( spectral_data, percent_vector, res_spline);\
+           % [ final_spline ] = nm_spline( first_spline );\
+           % [ io_real ] = io_real_gen( final_spline );\
+            %[ max_percent_adaption ] = spectral_percent( final_spline );}
+            %
             
             %save variable to mat file which will be overwritten every time
             fileName = sprintf( 'calibrationData.mat' );
-            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray', 'maxValues' );
+            save( fileName, 'io_real', 'max_percent_adaption', 'cs2000MeasurementCellArray', 'maxValues' );
             
             %save variables to unique mat file
             fileName = sprintf( 'calibrationData_%s.mat', currentTimeString );
             obj.fileNameOfCalibrationData = fileName;
-            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray', 'maxValues' );
+            save( fileName, 'io_real', 'max_percent_adaption', 'cs2000MeasurementCellArray', 'maxValues' );
             
             disp('DONE: calibration')
             toc();
