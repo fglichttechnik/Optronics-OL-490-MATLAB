@@ -14,6 +14,7 @@ classdef OL490Calibration < handle
         cs2000NDFilter                  % 0, 10, 100 ND Filter %0 => 0, 10 => 1, 100 => 2
         sendProgressToURL               % if 1, update RSS feed is called via URL
         numberOfDimLevels               % 11, 21, 41, 101
+        fileNameOfCalibrationData       % specific file name with date tag
     end
     methods
         %% constructor
@@ -77,7 +78,7 @@ classdef OL490Calibration < handle
         %% measure calibration data
         function obj = measureDataForCalibration( obj )
             
-            try
+            %try
                 %wait for personnel to leave the lab
                 obj.waitToBegin();
                 
@@ -89,8 +90,11 @@ classdef OL490Calibration < handle
                 cs2000MeasurementCellArray = cell( length( calibrationSpectrumCellArray ), 1 );
                 
                 % we ignore the 0% measurement and fake a result:
-                cs2000ColorimetricData = CS2000ColorimetricData();
-                cs2000ColorimetricData.Lv = 0;
+                cs2000ColorimetricDataClass = CS2000ColorimetricData();
+                classProperties = properties( cs2000ColorimetricDataClass );
+                cs2000ColorimetricData = cell( length( classProperties ) );
+                cs2000ColorimetricData{ 2 } = 1;
+                %cs2000ColorimetricData.Lv = 0;
                 cs2000MeasurementCellArray{ 1 } = CS2000Measurement( clock() , zeros( 401, 1 ) , cs2000ColorimetricData );
                 
                 % make the real measurements for all other dim levels
@@ -124,11 +128,11 @@ classdef OL490Calibration < handle
                 %auto evaluate data
                 obj.evaluateDataForCalibration();
                 
-            catch exceptObj
-                disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj
-                exceptObj.stack
-            end
+%             catch exceptObj
+%                 disp( sprintf( 'error caught %s', exceptObj.message ) );
+%                 exceptObj
+%                 exceptObj.stack
+%             end
             
             obj.indicateFinish();
             
@@ -137,16 +141,19 @@ classdef OL490Calibration < handle
         %% evaluate Data for calibration
         function obj = evaluateDataForCalibration( obj )
             
-            cs2000MeasurementCellArray = obj.cs2000MeasurementCellArray;
+            measurementCellArray = obj.cs2000MeasurementCellArray;
             
             %prepare data for function
-            numberOfMeasurements = length( cs2000MeasurementCellArray );
-            numberOfSpectralLines = length( cs2000MeasurementCellArray{ 1 }.spectralData );
+            numberOfMeasurements = length( measurementCellArray );
+            numberOfSpectralLines = length( measurementCellArray{ 1 }.spectralData );
             
             spectral_data = zeros( numberOfMeasurements, numberOfSpectralLines );
+            maxValues = zeros( numberOfMeasurements, 1 );
             for currentSpectrumIndex = 1 : numberOfMeasurements
-                currentSpectrum = cs2000MeasurementCellArray{ currentSpectrum }.spectralData;
-                currentSpectrumPercent = currentSpectrum ./ max( currentSpectrum );
+                currentSpectrum = measurementCellArray{ currentSpectrumIndex }.spectralData;
+                maxValue = max( currentSpectrum );
+                maxValues( currentSpectrumIndex ) = maxValue;
+                currentSpectrumPercent = currentSpectrum ./ maxValue;
                 spectral_data( currentSpectrumIndex, : ) = currentSpectrumPercent;
             end
             
@@ -154,23 +161,27 @@ classdef OL490Calibration < handle
             %fileName = sprintf( 'calibrationRawData_%s.mat', currentTimeString );
             %save( fileName, 'cs2000MeasurementCellArray' )
             
+            %% Hack: we currently do only one calibration
+            dataPercent = spectral_data( 1 );
+            
             %generate reference data
             numberOfDimLevels = obj.numberOfDimLevels;
             dimStepIncrease = 100 / ( numberOfDimLevels - 1 );
             
             res_spline = 0 : 0.1 : 100;
             percent_vector = 0 : dimStepIncrease : 100;            
-            firstSpline  = percentSpline( dataPercent, PercentResolution );
+            firstSpline  = percentSpline( dataPercent, percent_vector );
             secondSpline = nmSpline( firstSpline );
             ioReal       = ioRealGeneration( secondSpline);
             
             %save variable to mat file which will be overwritten every time
             fileName = sprintf( 'calibrationData.mat' );
-            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray' );
+            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray', 'maxValues' );
             
             %save variables to unique mat file
             fileName = sprintf( 'calibrationData_%s.mat', currentTimeString );
-            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray' );
+            obj.fileNameOfCalibrationData = fileName;
+            save( fileName, 'io_real', 'secondSpline', 'cs2000MeasurementCellArray', 'maxValues' );
             
             disp('DONE: calibration')
             toc();
@@ -219,7 +230,7 @@ classdef OL490Calibration < handle
                 numberOfDimLevels = obj.numberOfDimLevels;
                 dimStepIncrease = 1 / ( numberOfDimLevels - 1 );
                 
-                calibrationSpectrumCellArray = cell( 21, 1 );
+                calibrationSpectrumCellArray = cell( numberOfDimLevels, 1 );
                 OL490_MAX_VALUE = 49152;
                 
                 currentDimValue = 0;    %will increase by dimStepIncrease each step

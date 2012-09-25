@@ -69,7 +69,7 @@ for nmPointer = 1 : size( userPercent )
         end
     end
     helper = ( ( valuePointerTwo - 1) / 1000) * OL490MAX;
-    spectralRadianceData( nmPointer ) = spectralPercent( valuePointerTwo, nmPointer );
+    spectralRadianceData( nmPointer ) = spectralPercent( valuePointerOne, nmPointer );
     realValues( nmPointer ) = str2double( sprintf( '%0.0f', helper) );
 end
 realValues = realValues';
