@@ -4,14 +4,14 @@
 classdef OL490TargetSpectrum < handle
     %% properties
     properties
-        ol490Spectrum                    % 
+        spectrum                    % 
         dimValue                    % 
         Lv
     end
     methods
         %% constructor
-        function obj = OL490TargetSpectrum( ol490Spectrum, dimValue, Lv )
-            obj.ol490Spectrum = ol490Spectrum;
+        function obj = OL490TargetSpectrum( spectrum, dimValue, Lv )
+            obj.spectrum = spectrum;
             obj.dimValue = dimValue;
             obj.Lv = Lv;
         end
