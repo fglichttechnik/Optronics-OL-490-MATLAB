@@ -1,29 +1,20 @@
-function [ realValues, Lv ] = spectrumAdaption( userSpectrum, spectralPercent, ioReal, dimFactor, maxValues )
-% adapt userSpectrum for ol490 to get a real spectrum
-%   user_spectrum - vector with 1024 columns
-%   spectral_data - matrix generated with OL490-class
-%   io_real       - matrix generated with OL490-class
+function [ ol490Spectrum ] = generateOL490Spectrum( targetSpectrum, interpolatedSpectralDataCalibrationMatrix, inputOutputCalibrationMatrix, interpolatedMaxValuesForDimLevelSpectra, dimFactor )
+% generateOL490Spectrum
+%   targetSpectrum - requested spectrum, vector with 1024 columns
+%   interpolatedSpectralDataCalibrationMatrix - matrix generated with OL490-class
+%   inputOutputCalibrationMatrix       - matrix generated with OL490-class
 %   dimFactor     - number between 0 and 1 [p.e. 0.543], default is 1
-%   realValues    - adapted vector with ol490-values, from 0 till 49152
-%   maxValues     - values to recalculate real value of percentual value (needed for Lv)
+%   ol490Spectrum    - adapted vector with ol490-values, from 0 till 49152
+%   interpolatedMaxValuesForDimLevelSpectra     - values to recalculate real value of percentual value (needed for Lv)
 
 OL490MAX = 49152;
-if nargin < 4
+if nargin < 5
     dimFactor = 1;
 else
     if dimFactor > 1
         dimFactor = 1;
     end
 end
-
-% for nmCounter = 1 : size( ioReal, 2)
-%     for percentCounter = 1 : size( ioReal, 1)
-%         newIO( (size( ioReal, 1) - percentCounter + 1), nmCounter)  = ioReal(percentCounter, nmCounter);
-%         newSpectral( (size( ioReal, 1) - percentCounter + 1), nmCounter) =spectralPercent(percentCounter, nmCounter);        
-%     end    
-% end
-% ioReal = newIO;
-% spectralPercent = newSpectral;
 
 %userSpectrum preparation
 %list with smallest value differences between spectraPercent and userSpectrum
@@ -73,10 +64,13 @@ for nmPointer = 1 : size( userPercent )
     spectralRadianceData( nmPointer ) = spectralPercent( valuePointerOne, nmPointer ) * maxValues( valuePointerOne );
     realValues( nmPointer ) = str2double( sprintf( '%0.0f', helper) );
 end
-realValues = realValues';
+%ol490Spectrum = realValues';
 
 %calc luminance for current spectrum
 Lv = calcPhotopicLuminanceFromSpectrum( spectralRadianceData' );
 disp( sprintf( 'luminance of spectrum %3.3f cd/m^2', Lv ) );
+
+ol490Spectrum = OL490Spectrum( realValues', dimFactor, Lv );
+
 
 

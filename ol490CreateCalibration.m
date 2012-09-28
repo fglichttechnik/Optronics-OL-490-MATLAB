@@ -3,7 +3,9 @@ function [ calibrationFileName ] = ol490CreateCalibration( ...
     cs2000NDFilter, numberOfDimLevels )
 
 
-% %% set your parameters here
+% %% (deprecated, parameters are given by function) set your parameters here
+
+%we measure only once
  numberOfMeasurementIterations = 1;      % number of repetitions per light level
 % ol490CalibrationDataset = 1;            % 0 = 150µm, 1 = 350µm, 2 = 500µm, 3 = 750µm
 % ol490Index = 0;                         % index of ol490 0, 1...
@@ -23,6 +25,8 @@ if nargin == 0
     sendProgressToURL = 0;                  % if 1 a certain URL is called to update RSS feed
     
 end 
+
+%% -----------------------
 %% nothing to be done below
 OL490CalibrationInstance = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, numberOfDimLevels, sendProgressToURL );
 OL490CalibrationInstance.measureDataForCalibration();

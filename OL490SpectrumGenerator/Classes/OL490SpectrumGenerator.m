@@ -2,53 +2,45 @@
 %email j.winter@tu-berlin.de
 
 classdef OL490SpectrumGenerator < handle
-
-properties
-	targetSpectrum              % this is the requested spectrum to generate OL490 adapted data for
-	luminance                   % these is the desired luminance
-	ol490AdjustedSpectrum         % these are the adapted spectra based on the calibration data for each dimLevel
-    filePathToCalibrationData   % filePath to calibration data
-end
-
-methods
-	%% constructor
-	function obj = OL490SpectrumGenerator( targetSpectrum, luminance, filePathToCalibrationData )
-		obj.targetSpectrum = targetSpectrum;
-		obj.luminance = luminance;
-        obj.filePathToCalibrationData = filePathToCalibrationData;
+    
+    properties
+        targetSpectrum              % this is the requested spectrum to generate OL490 adapted data for
+        desiredLv                   % these is the desired luminance
+        ol490Spectrum         % these are the adapted spectra based on the calibration data for each dimLevel
+        filePathToCalibrationData   % filePath to calibration data
     end
-	
-	%% get dimLevel for luminance
-	%% TODO: implement this - return closest match for requested luminance
-% 	function [ obj, adjustedSpectrum ] = adjustedSpectrumForLuminance( obj )
-%         % calc max possible luminance
-%         % load calibration spectrum:
-%         data                = load( obj.filePathToCalibrationData );
-%         dataPercent         = data ./ max( max( data ));
-%         PercentResolution   = 0 : 0.1 : 100;
-%         userSpectrum        = load( obj.targetSpectrum ) ;
-%         
-%         
-% 	end
-	
-	%% create adapted spectrum on demand
-	%function value = get.ol490AdaptedSpectrum( obj )
-    function obj = createAdjustedSpectrum( obj )
-		
-		%if( isempty( obj.ol490AdaptedSpectrum ) )
+    
+    methods
+        %% constructor
+        function obj = OL490SpectrumGenerator( targetSpectrum, desiredLv, filePathToCalibrationData )
+            obj.targetSpectrum = targetSpectrum;
+            obj.desiredLv = desiredLv;
+            obj.filePathToCalibrationData = filePathToCalibrationData;
+        end
+        
+        %% generateSpectrum
+        function obj = generateSpectrum( obj )
             
             % load calibration data
             load( obj.filePathToCalibrationData );
+            %'inputOutputMatrix',
+            %'interpolatedSpectralDataMatrix',
+            %'cs2000MeasurementCellArray'
+            %, 'interpolatedMaxValuesForDimLevelSpectra'
             
             %calc maximum possible spectrum for targetSpectrum
-            [ adjustedSpectrum, Lv_max ] = spectrumAdaption( obj.targetSpectrum, max_percent_adaption, io_real, 1, maxValues );
-
+            %ol490Spectrum = OL490Spectrum( obj.targetSpectrum );
+            dimFactor = 1.0;
+            [ ol490Spectrum ] = generateOL490Spectrum( ...
+                obj.targetSpectrum,...
+                interpolatedSpectralDataMatrix, ...
+                inputOutputMatrix, ...
+                dimFactor,...
+                interpolatedMaxValuesForDimLevelSpectra ...
+                ); 
             
-            obj.ol490AdjustedSpectrum = adjustedSpectrum;
+            obj.ol490Spectrum = ol490Spectrum;
             
-		%end
-	
-		%value = obj.ol490AdaptedSpectrum;
-	end
-end
+        end
+    end
 end
