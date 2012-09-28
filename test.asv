@@ -5,7 +5,7 @@ load 'C:\Dokumente und Einstellungen\jaw\Desktop\spektren\kaarst_47_direkt.mat'
 %m = measurements{1};
 s=cs2000Spectrum_2_OL490Spectrum(m);
 ol490Spec = OL490SpectrumGenerator( s, 1.0, 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat' )
-ol490Spec.generateSpectrum( );
+ol490Spec.generateSpectrum('C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat');
 
  
 
@@ -15,17 +15,16 @@ ol490Spec.generateSpectrum( );
             interpolatedMaxValuesForDimLevelSpectra ] = OL490Calibration.loadCalibrationData( 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat' );
            
 numberOfLevels = 50;
-tao = 15;
 steps = 0 : numberOfLevels;
-dimValues = exp( -steps / tao );
+dimValues = exp( steps );
 dimValues = dimValues ./ max( dimValues );
 dimValues = 1 - dimValues;
-maxFactor = 0.07;
+maxFactor = 0.2;
 spectra = cell( numberOfLevels, 1 );
 for i = 1 : numberOfLevels
     currentDimValue = dimValues( i );
     ol490Spec = OL490SpectrumGenerator( s, currentDimValue * maxFactor, 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat' )
-    ol490Spec.generateSpectrum(  );%inputOutputMatrix, interpolatedSpectralDataMatrix, interpolatedMaxValuesForDimLevelSpectra
+    ol490Spec.generateSpectrum( inputOutputMatrix, interpolatedSpectralDataMatrix, interpolatedMaxValuesForDimLevelSpectra );
     spectra{i} = ol490Spec;
 end
 

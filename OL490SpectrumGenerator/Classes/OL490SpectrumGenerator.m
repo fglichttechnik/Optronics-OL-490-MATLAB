@@ -19,25 +19,29 @@ classdef OL490SpectrumGenerator < handle
         end
         
         %% generateSpectrum
-        function obj = generateSpectrum( obj )
+        function obj = generateSpectrum( obj, inputOutputMatrix, interpolatedSpectralDataMatrix, interpolatedMaxValuesForDimLevelSpectra )
             
-            % load calibration data
-            load( obj.filePathToCalibrationData );
-            %'inputOutputMatrix',
-            %'interpolatedSpectralDataMatrix',
-            %'cs2000MeasurementCellArray'
-            %, 'interpolatedMaxValuesForDimLevelSpectra'
+            if( nargin < 2)
+                % load calibration data
+                [ inputOutputMatrix,...
+                    interpolatedSpectralDataMatrix,...
+                    interpolatedMaxValuesForDimLevelSpectra ] = OL490Calibration.loadCalibrationData( obj.filePathToCalibrationData );
+                %'inputOutputMatrix',
+                %'interpolatedSpectralDataMatrix',
+                %'cs2000MeasurementCellArray'
+                %, 'interpolatedMaxValuesForDimLevelSpectra'
+            end
             
             %calc maximum possible spectrum for targetSpectrum
             %ol490Spectrum = OL490Spectrum( obj.targetSpectrum );
-            dimFactor = 1.0;
+            dimFactor = obj.desiredLv;
             [ ol490TargetSpectrum ] = generateOL490Spectrum( ...
                 obj.targetSpectrum,...
                 interpolatedSpectralDataMatrix, ...
                 inputOutputMatrix, ...
                 interpolatedMaxValuesForDimLevelSpectra, ...
-                dimFactor...                
-                ); 
+                dimFactor...
+                );
             
             obj.ol490Spectrum = ol490TargetSpectrum;
             

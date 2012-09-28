@@ -49,6 +49,11 @@ classdef OL490Controller < handle
             obj.ol_obj.OpenShutter();
         end
         
+        %% open shutter
+        function obj = closeShutter( obj )
+            obj.ol_obj.CloseShutter();
+        end
+        
         %% send a spectrum
         function obj = sendSpectrum( obj, currentSpectrum )
             obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
