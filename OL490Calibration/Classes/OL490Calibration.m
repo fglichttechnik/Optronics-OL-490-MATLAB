@@ -15,6 +15,7 @@ classdef OL490Calibration < handle
         sendProgressToURL               % if 1, update RSS feed is called via URL
         numberOfDimLevels               % 11, 21, 41, 101
         fileNameOfCalibrationData       % specific file name with date tag
+        calibrationDate                 % date of calibration
     end
     methods
         %% constructor
@@ -190,6 +191,7 @@ classdef OL490Calibration < handle
             
             %prepare save
             currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );
+            obj.calibrationDate = currentTimeString;
             
             %save variable to mat file which will be overwritten every time
             fileName = sprintf( 'calibrationData.mat' );

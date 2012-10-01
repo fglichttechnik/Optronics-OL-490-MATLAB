@@ -6,16 +6,18 @@ classdef OL490SpectrumGenerator < handle
     properties
         targetSpectrum              % this is the requested spectrum to generate OL490 adapted data for
         desiredLv                   % these is the desired luminance
-        ol490Spectrum         % these are the adapted spectra based on the calibration data for each dimLevel
+        ol490Spectrum               % these are the adapted spectra based on the calibration data for each dimLevel
         filePathToCalibrationData   % filePath to calibration data
+        olType                      % target, background or glare OL490
     end
     
     methods
         %% constructor
-        function obj = OL490SpectrumGenerator( targetSpectrum, desiredLv, filePathToCalibrationData )
+        function obj = OL490SpectrumGenerator( targetSpectrum, desiredLv, filePathToCalibrationData, olType )
             obj.targetSpectrum = targetSpectrum;
             obj.desiredLv = desiredLv;
             obj.filePathToCalibrationData = filePathToCalibrationData;
+            obj.olType = olType;
         end
         
         %% generateSpectrum
