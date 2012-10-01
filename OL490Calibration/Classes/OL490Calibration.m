@@ -12,20 +12,20 @@ classdef OL490Calibration < handle
         timeToWaitBeforeMeasurementInS  % time to leave the lab
         cs2000MeasurementCellArray      % created by startcalibration measurements
         cs2000NDFilter                  % 0, 10, 100 ND Filter %0 => 0, 10 => 1, 100 => 2
-        sendProgressToURL               % if 1, update RSS feed is called via URL
+        %sendProgressToURL               % if 1, update RSS feed is called via URL
         numberOfDimLevels               % 11, 21, 41, 101
         fileNameOfCalibrationData       % specific file name with date tag
         calibrationDate                 % date of calibration
     end
     methods
         %% constructor
-        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, numberOfDimLevels, sendProgressToURL )
+        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, numberOfDimLevels )
             obj.ol490CalibrationDataset = ol490CalibrationDataset;
             obj.timeToWaitBeforeMeasurementInS = timeToWaitBeforeMeasurementInS;
             obj.ol490Index = ol490Index;
             obj.cs2000NDFilter = cs2000NDFilter;
             obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
-            obj.sendProgressToURL = sendProgressToURL;
+            %obj.sendProgressToURL = sendProgressToURL;
             obj.numberOfDimLevels = numberOfDimLevels;
             obj.init( );
             tic();
@@ -135,7 +135,7 @@ classdef OL490Calibration < handle
             %                 exceptObj.stack
             %             end
             
-            obj.indicateFinish();
+            %obj.indicateFinish();
             
         end
         
@@ -208,23 +208,23 @@ classdef OL490Calibration < handle
             toc();
         end
         
-        %% indicateFinish
-        function obj = indicateFinish( obj )
-            
-            %don't do this if not requested
-            if ( ~obj.sendProgressToURL )
-                return
-            end
-            
-            %% TODO: we need a server with portforwarding
-            try
-                s = urlread( 'http://130.149.60.46:13370' );
-            catch exceptObj
-                disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj
-                exceptObj.stack
-            end
-        end
+%         %% indicateFinish
+%         function obj = indicateFinish( obj )
+%             
+%             %don't do this if not requested
+%             if ( ~obj.sendProgressToURL )
+%                 return
+%             end
+%             
+%             %% TODO: we need a server with portforwarding
+%             try
+%                 s = urlread( 'http://130.149.60.46:13370' );
+%             catch exceptObj
+%                 disp( sprintf( 'error caught %s', exceptObj.message ) );
+%                 exceptObj
+%                 exceptObj.stack
+%             end
+%         end
         
         %% beep sound
         function obj = beepHigh( obj )

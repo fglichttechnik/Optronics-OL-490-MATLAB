@@ -114,9 +114,12 @@ end
 xenonSpectrum = interpolatedSpectralDataCalibrationMatrix( end, : );
 invertedXenonSpectrum = 1 ./ xenonSpectrum;
 targetXenonSpectrum = invertedXenonSpectrum .* targetSpectrum';
+
+targetXenonSpectrum(1:64) = 0;
+targetXenonSpectrum( 3 : end ) = targetXenonSpectrum( 1 : end - 2);
+
 ol490DimValueSpectrumCorrected = targetXenonSpectrum / max( targetXenonSpectrum ) * OL490MAX * dimFactor;
-ol490DimValueSpectrumCorrected(1:51) = 0;
-ol490DimValueSpectrumCorrected( 3 : end ) = ol490DimValueSpectrumCorrected( 1 : end - 2);
+
 
 %calc luminance for current spectrum
 Lv = calcPhotopicLuminanceFromSpectrum( spectralRadianceData' );
