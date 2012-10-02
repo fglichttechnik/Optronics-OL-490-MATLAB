@@ -36,7 +36,7 @@ classdef OL490SpectrumGenerator < handle
             
             %calc maximum possible spectrum for targetSpectrum
             %ol490Spectrum = OL490Spectrum( obj.targetSpectrum );
-            dimFactor = obj.desiredLv;
+            dimFactor = 1;
             [ ol490TargetSpectrum ] = generateOL490Spectrum( ...
                 obj.targetSpectrum,...
                 interpolatedSpectralDataMatrix, ...
@@ -45,8 +45,24 @@ classdef OL490SpectrumGenerator < handle
                 dimFactor...
                 );
             
-            obj.ol490Spectrum = ol490TargetSpectrum;
+            %now calc spectrum with certain dimFactor to create desired Lv            
+            %maybe we have to do this iterative
+            numberOfIterations = 0;
+            maxNumberOfIterations = 3;
+            dimFactor = obj.desiredLv / ol490TargetSpectrum.Lv;
+            while( numberOfIterations <= maxNumberOfIterations )                
+                [ ol490TargetSpectrum ] = generateOL490Spectrum( ...
+                    obj.targetSpectrum,...
+                    interpolatedSpectralDataMatrix, ...
+                    inputOutputMatrix, ...
+                    maxValueOfAllSpectra, ...
+                    dimFactor...
+                    );
+                dimFactor = obj.desiredLv / ol490TargetSpectrum.Lv * dimFactor;
+                numberOfIterations = numberOfIterations + 1;
+            end
             
+            obj.ol490Spectrum = ol490TargetSpectrum;            
         end
     end
 end
