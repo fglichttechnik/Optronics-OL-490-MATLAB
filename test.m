@@ -7,7 +7,10 @@ s=cs2000Spectrum_2_OL490Spectrum(m);
 ol490Spec = OL490SpectrumGenerator( s, 1.0, 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat', 'background' )
 ol490Spec.generateSpectrum( );
 
- 
+ec = ExperimentController();
+ec.init();
+ec.sendBackgroundSpectrum( ol490Spec.ol490Spectrum.spectrum );
+ ec.documentTargetOl490SpectralVariance( m );
 
 %prepare spectra
 [ inputOutputMatrix,...
@@ -33,7 +36,7 @@ end
 % ol490Controller.init();
 % ol490Controller.openShutter();
 % ol490Controller.sendSpectrum( ol490Spec.ol490Spectrum.spectrum );
-ec.sendBackgroundSpectrum( ol490Spec.ol490Spectrum.spectrum );
+
 
 ol490Controller.closeShutter();
 pause(8);

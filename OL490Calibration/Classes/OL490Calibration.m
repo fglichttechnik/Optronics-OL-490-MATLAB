@@ -326,7 +326,7 @@ classdef OL490Calibration < handle
         %% load calibration data
         function [ inputOutputMatrix,...
             interpolatedSpectralDataMatrix,...
-            interpolatedMaxValuesForDimLevelSpectra ] = loadCalibrationData( filePath )
+            maxValueOfAllSpectra ] = loadCalibrationData( filePath )
             
             %load measurements
             load( filePath );
@@ -339,22 +339,26 @@ classdef OL490Calibration < handle
             spectral_data_dimLevels = zeros( numberOfMeasurements, numberOfSpectralLines );
             spectral_data_dimLevelsRelative = zeros( numberOfMeasurements, numberOfSpectralLines );
             maxValuesOfDimLevelSpectrum = zeros( numberOfMeasurements, 1 );
+            
             for currentSpectrumIndex = 1 : numberOfMeasurements
                 currentSpectrum = cs2000MeasurementCellArray{ currentSpectrumIndex }.spectralData;
                 spectral_data_dimLevels( currentSpectrumIndex, : ) = currentSpectrum;
                 
-                [ maxValueOfCurrentSpectrum, maxValueIndexOfCurrentSpectrum ] = max( currentSpectrum );
+                %[ maxValueOfCurrentSpectrum, maxValueIndexOfCurrentSpectrum ] = max( currentSpectrum );
                 % we need the maxValues for recreating spectral radiances
                 % from relative values
-                maxValuesForDimLevelSpectra( currentSpectrumIndex ) = maxValueOfCurrentSpectrum;
-                if( maxValueOfCurrentSpectrum )
-                    currentSpectrumRelative = currentSpectrum ./ maxValueOfCurrentSpectrum;
-                else
-                    currentSpectrumRelative = currentSpectrum;
-                end
-                spectral_data_dimLevelsRelative( currentSpectrumIndex, : ) = currentSpectrumRelative;
+               % maxValuesForDimLevelSpectra( currentSpectrumIndex ) = maxValueOfCurrentSpectrum;
+%                 if( maxValueOfCurrentSpectrum )
+%                     currentSpectrumRelative = currentSpectrum ./ maxValueOfCurrentSpectrum;
+%                 else
+%                     currentSpectrumRelative = currentSpectrum;
+%                 end
+                %spectral_data_dimLevelsRelative( currentSpectrumIndex, : ) = currentSpectrumRelative;
             end
             
+            maxValueOfAllSpectra = max( max( spectral_data_dimLevels ) );
+            spectral_data_dimLevelsRelative = spectral_data_dimLevels ./ maxValueOfAllSpectra;            
+
             %generate interpolated reference data
             dimLevelResolution   = 0 : 0.1 : 100;
             %interpolatedDimLevelSpectralData  = OL490Calibration.interpolateDimLevels( spectral_data_dimLevels, dimLevelResolution );
@@ -367,13 +371,13 @@ classdef OL490Calibration < handle
             %spectral_data_dimLevelsRelative( 1, : ) = zeroDimLevel;
             
             %we get the maxvalues elseWhere
-            interpolatedMaxValuesForDimLevelSpectra  = OL490Calibration.interpolateDimLevels( maxValuesForDimLevelSpectra', dimLevelResolution );
+            %interpolatedMaxValuesForDimLevelSpectra  = OL490Calibration.interpolateDimLevels( maxValuesForDimLevelSpectra', dimLevelResolution );
             
             interpolatedSpectralLinesSpectralData = OL490Calibration.interpolateSpectrum( interpolatedDimLevelSpectralData );
             interpolatedSpectralDataMatrix = interpolatedSpectralLinesSpectralData;
             %max_percent_adaption = nmSpline( prctSpline );
             inputOutputMatrix  = OL490Calibration.generateInputOutputFunction( interpolatedSpectralDataMatrix );
-            
+            disp('');
         end
     end
 end
