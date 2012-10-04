@@ -54,12 +54,18 @@ classdef OL490Controller < handle
             obj.ol_obj.CloseShutter();
         end
         
-        %% send a spectrum
+        %% send a ol490SpectrumInstance
         function obj = sendSpectrum( obj, currentSpectrum )
             disp( sprintf( 'correcting spectrum with %1.2f', currentSpectrum.correctionFactor ) );
             olSpectrum = currentSpectrum.ol490Spectrum.spectrum * currentSpectrum.correctionFactor;
             obj.ol_obj.TurnOnColumn( int64( olSpectrum ) );
         end
+        
+        %% send a raw ol490Spectrum
+        function obj = sendOLSpectrum( obj, currentSpectrum )
+            obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
+        end
+
     end
     
 end

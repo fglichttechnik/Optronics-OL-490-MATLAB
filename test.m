@@ -14,11 +14,12 @@ load 'C:\Dokumente und Einstellungen\jaw\Desktop\spektren\neuss_HPS_direkt.mat'
 ol490Spec = OL490SpectrumGenerator( m, 0.3, 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat', 'background' )
 ol490Spec.generateSpectrum( );
 
-ol490Spec.documentSpectralVariance();
-
 ec = ExperimentController();
 ec.init();
 ec.sendBackgroundSpectrum( ol490Spec );
+
+ol490Spec.documentSpectralVariance();
+
 ec.documentTargetOl490SpectralVariance(  );
 
 %prepare spectra
@@ -89,3 +90,18 @@ fclose( imFile1 );
 ec.sendImage( imData1 );
 ec.sendPositionCalibrationImage();
 ec.cleanup();
+
+
+plot(interpolatedSpectralDataMatrix(:,500) / max(interpolatedSpectralDataMatrix(:,500)))
+hold on;
+plot(interpolatedSpectralDataMatrix(:,300) / max(interpolatedSpectralDataMatrix(:,300)))
+plot(interpolatedSpectralDataMatrix(:,800 / max(interpolatedSpectralDataMatrix(:,800))))
+hold off
+
+plot(inputOutputMatrix(:,500) / max(inputOutputMatrix(:,500)))
+hold on;
+plot(inputOutputMatrix(:,300) / max(inputOutputMatrix(:,300)))
+plot(inputOutputMatrix(:,800 / max(inputOutputMatrix(:,800))))
+hold off
+
+

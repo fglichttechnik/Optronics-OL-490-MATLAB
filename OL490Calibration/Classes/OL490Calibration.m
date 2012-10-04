@@ -105,7 +105,7 @@ classdef OL490Calibration < handle
                 
                 % recall spectrum in OL490
                 currentSpectrum = calibrationSpectrumCellArray{ currentSpectrumIndex }
-                obj.ol490Controller.sendSpectrum( currentSpectrum.spectrum );
+                obj.ol490Controller.sendOLSpectrum( currentSpectrum.spectrum );
                 
                 %just be sure that the OL490 is ready
                 pause( 1 );
@@ -113,6 +113,8 @@ classdef OL490Calibration < handle
                 % measure spectrum via CS2000
                 disp( 'measuring' );
                 [message1, message2, cs2000Measurement, colorimetricNames] = CS2000_measure();
+                
+                disp( sprintf( 'measured: %3.3f cd/m^2', cs2000Measurement.colorimetricData.Lv ) );
                 
                 %% TODO: repeat this step for numberOfMeasurementIterations
                 %% and calc mean
@@ -252,10 +254,10 @@ classdef OL490Calibration < handle
             if ( isempty( obj.calibrationSpectrumCellArray ) )
                 
                 % we make 5 more precise measurements from 0 : 0.1
-                numberOfPreciseDimLevels = 5;
+                numberOfPreciseDimLevels = 10;
                 toValueOfPreciseMeasurements = 0.1;
                 numberOfDimLevels = obj.numberOfDimLevels - numberOfPreciseDimLevels;                
-                dimStepIncrease = 1 / ( numberOfDimLevels - 1 );
+                dimStepIncrease = (1 - toValueOfPreciseMeasurements) / ( numberOfDimLevels - 1 );
                 dimStepIncreasePrecise = toValueOfPreciseMeasurements / ( numberOfPreciseDimLevels - 1 );
                 
                 calibrationSpectrumCellArray = cell( numberOfDimLevels, 1 );
@@ -310,7 +312,7 @@ classdef OL490Calibration < handle
                 error( 'wrong input for dimlevel interpolation!' )
             end
             if ( max( dimLevelResolutionOriginal ) > 100 ) 
-                error( 'wrong input for dimlevel interpolation!' )
+               % error( 'wrong input for dimlevel interpolation!' )
             end
             
 %             switch size( spectralData, 1 )

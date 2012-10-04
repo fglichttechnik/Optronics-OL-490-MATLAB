@@ -97,8 +97,10 @@ classdef OL490SpectrumGenerator < handle
             %save variable to mat file which will be overwritten every time
             %fileName = sprintf( 'targetSpectralVariance_%s.mat', currentTimeString );
             %save( fileName, 'actualCS2000Measurement' );
-            luminanceText = sprintf( 'Lv = %3.3f cd/m^2', actualCS2000Measurement.colorimetricData.Lv );
-            t=text( 0.1, 0.1, luminanceText, 'Units', 'normalized' )
+            luminanceText = sprintf( 'Lv,act = %3.3f cd/m^2', actualCS2000Measurement.colorimetricData.Lv );
+            luminanceTextRef = sprintf( 'Lv,tar = %3.3f cd/m^2', obj.desiredLv );
+            t=text( 0.1, 0.1, luminanceText, 'Units', 'normalized' );
+            t=text( 0.1, 0.2, luminanceTextRef, 'Units', 'normalized' );
             set( gca, 'YScale', 'lin' );
             disp( sprintf( 'measured luminance: %3.3f cd/m^2', actualCS2000Measurement.colorimetricData.Lv ) );
             
