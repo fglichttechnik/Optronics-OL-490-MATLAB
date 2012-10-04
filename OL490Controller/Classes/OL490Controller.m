@@ -56,7 +56,9 @@ classdef OL490Controller < handle
         
         %% send a spectrum
         function obj = sendSpectrum( obj, currentSpectrum )
-            obj.ol_obj.TurnOnColumn( int64( currentSpectrum ) );
+            disp( sprintf( 'correcting spectrum with %1.2f', currentSpectrum.correctionFactor ) );
+            olSpectrum = currentSpectrum.ol490Spectrum.spectrum * currentSpectrum.correctionFactor;
+            obj.ol_obj.TurnOnColumn( int64( olSpectrum ) );
         end
     end
     

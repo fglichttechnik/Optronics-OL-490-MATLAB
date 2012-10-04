@@ -5,14 +5,17 @@ classdef OL490SweepGenerator < handle
     
     properties
         ol490Spectrum           % the maximum spectrum
-        ol490SpectrumArray      % the array with intermediate luminance levels
+        ol490SpectrumArrayUp      % the array with intermediate luminance levels
+        ol490SpectrumArrayDown      % the array with intermediate luminance levels
         sweepType               % sweep type: linear, logarithmic
+        sweepTime               % time for sweep
     end
     
     methods
         %% constructor
-        function obj = OL490SweepGenerator( ol490Spectrum, sweepType )
+        function obj = OL490SweepGenerator( ol490Spectrum, sweepTime, sweepType )
             obj.ol490Spectrum = ol490Spectrum;
+            obj.sweepTime = sweepTime;
             obj.sweepType = sweepType;
         end
         

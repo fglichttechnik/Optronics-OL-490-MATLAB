@@ -8,23 +8,25 @@ classdef OL490Calibration < handle
         numberOfMeasurementIterations   % number of repetitions per light level
         ol490CalibrationDataset         % 0 = 150µm, 1 = 350µm, 2 = 500µm, 3 = 750µm
         ol490Index                      % index of ol490 0, 1...
-        calibrationSpectrumCellArray    % cell array with calibration spectrum 0%-100% in 5% steps
+        calibrationSpectrumCellArray    % cell array with calibration spectrum 0%-100%
+        calibrationSpectrumDimLevelArray   % array with actual dim levels
         timeToWaitBeforeMeasurementInS  % time to leave the lab
         cs2000MeasurementCellArray      % created by startcalibration measurements
         cs2000NDFilter                  % 0, 10, 100 ND Filter %0 => 0, 10 => 1, 100 => 2
-        sendProgressToURL               % if 1, update RSS feed is called via URL
+        %sendProgressToURL               % if 1, update RSS feed is called via URL
         numberOfDimLevels               % 11, 21, 41, 101
         fileNameOfCalibrationData       % specific file name with date tag
+        calibrationDate                 % date of calibration
     end
     methods
         %% constructor
-        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, numberOfDimLevels, sendProgressToURL )
+        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, numberOfDimLevels )
             obj.ol490CalibrationDataset = ol490CalibrationDataset;
             obj.timeToWaitBeforeMeasurementInS = timeToWaitBeforeMeasurementInS;
             obj.ol490Index = ol490Index;
             obj.cs2000NDFilter = cs2000NDFilter;
             obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
-            obj.sendProgressToURL = sendProgressToURL;
+            %obj.sendProgressToURL = sendProgressToURL;
             obj.numberOfDimLevels = numberOfDimLevels;
             obj.init( );
             tic();
@@ -134,7 +136,7 @@ classdef OL490Calibration < handle
             %                 exceptObj.stack
             %             end
             
-            obj.indicateFinish();
+            %obj.indicateFinish();
             
         end
         
@@ -187,42 +189,45 @@ classdef OL490Calibration < handle
             % [ io_real ] = io_real_gen( final_spline );\
             %[ max_percent_adaption ] = spectral_percent( final_spline );}
             %
+            %we want to save the dimLevels as well
+            calibrationSpectrumCellArray = obj.calibrationSpectrumCellArray;
             
             %prepare save
             currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );
+            obj.calibrationDate = currentTimeString;
             
             %save variable to mat file which will be overwritten every time
             fileName = sprintf( 'calibrationData.mat' );
             %save( fileName, 'inputOutputMatrix', 'interpolatedSpectralDataMatrix', 'cs2000MeasurementCellArray', 'interpolatedMaxValuesForDimLevelSpectra' );
-            save( fileName, 'cs2000MeasurementCellArray');
+            save( fileName, 'cs2000MeasurementCellArray', 'calibrationSpectrumCellArray' );
 
             %save variables to unique mat file
             fileName = sprintf( 'calibrationData_%s.mat', currentTimeString );
             obj.fileNameOfCalibrationData = fileName;
             %save( fileName, 'inputOutputMatrix', 'interpolatedSpectralDataMatrix', 'cs2000MeasurementCellArray', 'interpolatedMaxValuesForDimLevelSpectra' );
-            save( fileName, 'cs2000MeasurementCellArray');
+            save( fileName, 'cs2000MeasurementCellArray', 'calibrationSpectrumCellArray' );
             
             disp('DONE: calibration')
             toc();
         end
         
-        %% indicateFinish
-        function obj = indicateFinish( obj )
-            
-            %don't do this if not requested
-            if ( ~obj.sendProgressToURL )
-                return
-            end
-            
-            %% TODO: we need a server with portforwarding
-            try
-                s = urlread( 'http://130.149.60.46:13370' );
-            catch exceptObj
-                disp( sprintf( 'error caught %s', exceptObj.message ) );
-                exceptObj
-                exceptObj.stack
-            end
-        end
+%         %% indicateFinish
+%         function obj = indicateFinish( obj )
+%             
+%             %don't do this if not requested
+%             if ( ~obj.sendProgressToURL )
+%                 return
+%             end
+%             
+%             %% TODO: we need a server with portforwarding
+%             try
+%                 s = urlread( 'http://130.149.60.46:13370' );
+%             catch exceptObj
+%                 disp( sprintf( 'error caught %s', exceptObj.message ) );
+%                 exceptObj
+%                 exceptObj.stack
+%             end
+%         end
         
         %% beep sound
         function obj = beepHigh( obj )
@@ -250,6 +255,8 @@ classdef OL490Calibration < handle
                 dimStepIncrease = 1 / ( numberOfDimLevels - 1 );
                 
                 calibrationSpectrumCellArray = cell( numberOfDimLevels, 1 );
+                obj.calibrationSpectrumDimLevelArray = zeros( numberOfDimLevels, 1 );
+                
                 OL490_MAX_VALUE = 49152;
                 
                 currentDimValue = 0;    %will increase by dimStepIncrease each step
@@ -257,7 +264,7 @@ classdef OL490Calibration < handle
                     currentSpectrum = ones( 1024, 1 ) * OL490_MAX_VALUE * currentDimValue;
                     calibrationSpectrum = OL490CalibrationSpectrum( currentSpectrum, currentDimValue );
                     calibrationSpectrumCellArray{ currentSpectrumIndex } = calibrationSpectrum;
-                    
+                    obj.calibrationSpectrumDimLevelArray( currentSpectrumIndex ) = currentDimValue;
                     %incearse dimValue for next iteration
                     currentDimValue = currentDimValue + dimStepIncrease;
                 end
@@ -288,6 +295,7 @@ classdef OL490Calibration < handle
         %% interpolateDimLevels
         function [ interpolatedData ] = interpolateDimLevels( spectralData, interpolatedDimLevelResolution )
             %cubic spline interpolation for dimLevels
+            dimLevelResolution = obj.calibrationSpectrumDimLevelArray;
             switch size( spectralData, 1 )
                 case 11
                     currentDimLevelResolution = 0:10:100;
@@ -324,7 +332,7 @@ classdef OL490Calibration < handle
         %% load calibration data
         function [ inputOutputMatrix,...
             interpolatedSpectralDataMatrix,...
-            interpolatedMaxValuesForDimLevelSpectra ] = loadCalibrationData( filePath )
+            maxValueOfAllSpectra ] = loadCalibrationData( filePath, calibrationSpectrumCellArray )
             
             %load measurements
             load( filePath );
@@ -337,33 +345,50 @@ classdef OL490Calibration < handle
             spectral_data_dimLevels = zeros( numberOfMeasurements, numberOfSpectralLines );
             spectral_data_dimLevelsRelative = zeros( numberOfMeasurements, numberOfSpectralLines );
             maxValuesOfDimLevelSpectrum = zeros( numberOfMeasurements, 1 );
+            
             for currentSpectrumIndex = 1 : numberOfMeasurements
                 currentSpectrum = cs2000MeasurementCellArray{ currentSpectrumIndex }.spectralData;
                 spectral_data_dimLevels( currentSpectrumIndex, : ) = currentSpectrum;
                 
-                [ maxValueOfCurrentSpectrum, maxValueIndexOfCurrentSpectrum ] = max( currentSpectrum );
+                %[ maxValueOfCurrentSpectrum, maxValueIndexOfCurrentSpectrum ] = max( currentSpectrum );
                 % we need the maxValues for recreating spectral radiances
                 % from relative values
-                maxValuesForDimLevelSpectra( currentSpectrumIndex ) = maxValueOfCurrentSpectrum;
-                if( maxValueOfCurrentSpectrum )
-                    currentSpectrumRelative = currentSpectrum ./ maxValueOfCurrentSpectrum;
-                else
-                    currentSpectrumRelative = currentSpectrum;
-                end
-                spectral_data_dimLevelsRelative( currentSpectrumIndex, : ) = currentSpectrumRelative;
+               % maxValuesForDimLevelSpectra( currentSpectrumIndex ) = maxValueOfCurrentSpectrum;
+%                 if( maxValueOfCurrentSpectrum )
+%                     currentSpectrumRelative = currentSpectrum ./ maxValueOfCurrentSpectrum;
+%                 else
+%                     currentSpectrumRelative = currentSpectrum;
+%                 end
+                %spectral_data_dimLevelsRelative( currentSpectrumIndex, : ) = currentSpectrumRelative;
             end
+            
+            maxValueOfAllSpectra = max( max( spectral_data_dimLevels ) );
+            spectral_data_dimLevelsRelative = spectral_data_dimLevels ./ maxValueOfAllSpectra;            
+
+            figure();
+            mesh( spectral_data_dimLevelsRelative );
+            saveas( gcf, 'spectral_data_dimLevelsRelative', 'fig' );
+            saveas( gcf, 'spectral_data_dimLevelsRelative', 'epsc' );
             
             %generate interpolated reference data
             dimLevelResolution   = 0 : 0.1 : 100;
-            interpolatedDimLevelSpectralData  = OL490Calibration.interpolateDimLevels( spectral_data_dimLevels, dimLevelResolution );
-%                         interpolatedDimLevelSpectralData  = OL490Calibration.interpolateDimLevels( spectral_data_dimLevelsRelative, dimLevelResolution );
+            %interpolatedDimLevelSpectralData  = OL490Calibration.interpolateDimLevels( spectral_data_dimLevels, dimLevelResolution );
+            %interpolatedDimLevelSpectralData  = OL490Calibration.interpolateDimLevels( spectral_data_dimLevelsRelative, dimLevelResolution );
 
+            %prevent überschwinger in dimLevel interpolation
+            %zeroDimLevel = spectral_data_dimLevelsRelative( 1, : );
+            %spectral_data_dimLevelsRelative( 1, : ) = spectral_data_dimLevelsRelative( 2, : );
+            interpolatedDimLevelSpectralData  = OL490Calibration.interpolateDimLevels( spectral_data_dimLevelsRelative, calibrationSpectrumCellArray, dimLevelResolution );
+            %spectral_data_dimLevelsRelative( 1, : ) = zeroDimLevel;
+            
+            %we get the maxvalues elseWhere
             %interpolatedMaxValuesForDimLevelSpectra  = OL490Calibration.interpolateDimLevels( maxValuesForDimLevelSpectra', dimLevelResolution );
+            
             interpolatedSpectralLinesSpectralData = OL490Calibration.interpolateSpectrum( interpolatedDimLevelSpectralData );
             interpolatedSpectralDataMatrix = interpolatedSpectralLinesSpectralData;
             %max_percent_adaption = nmSpline( prctSpline );
             inputOutputMatrix  = OL490Calibration.generateInputOutputFunction( interpolatedSpectralDataMatrix );
-            
+            disp('');
         end
     end
 end
