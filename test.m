@@ -11,14 +11,18 @@ load 'C:\Dokumente und Einstellungen\jaw\Desktop\spektren\neuss_HPS_direkt.mat'
 %load HPS_350_09_26.mat
 %m = measurements{1};
 
-ol490Spec = OL490SpectrumGenerator( m, 0.3, 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData.mat', 'background' )
-ol490Spec.generateSpectrum( );
+%ol490Spec = OL490SpectrumGenerator( m, 0.3, 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData_background.mat' );
+%ol490Spec.generateSpectrum( );
 
 ec = ExperimentController();
 ec.init();
-ec.sendBackgroundSpectrum( ol490Spec );
+ec.backgroundCalibrationFileName = 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData_background.mat';
+ec.targetCalibrationFileName = 'C:\Dokumente und Einstellungen\jaw\Desktop\Development\calibrationData_background.mat';
+ec.setupCurrentExperimentSettings( 0.3, m );
+ec.startExperiment();
+%ec.sendBackgroundSpectrum( ol490Spec );
 
-ol490Spec.documentSpectralVariance();
+%ol490Spec.documentSpectralVariance();
 
 ec.documentTargetOl490SpectralVariance(  );
 

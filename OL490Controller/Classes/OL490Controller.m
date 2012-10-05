@@ -24,9 +24,9 @@ classdef OL490Controller < handle
             NET.addAssembly([path 'OL490_SDK_Dll.dll']);
             NET.addAssembly([path 'CyUSB.dll']);
             
-            ol_obj = OL490_SDK_Dll.OL490SdkLibrary()
-            ol_obj.ConnectToOL490( obj.ol490Index )
-            result = ol_obj.CloseShutter()
+            ol_obj = OL490_SDK_Dll.OL490SdkLibrary();
+            ol_obj.ConnectToOL490( obj.ol490Index );
+            result = ol_obj.CloseShutter();
             disp( sprintf( 'result of operation: %s', char( result ) ) );
             ol_obj.LoadAndUseStoredCalibration( obj.ol490CalibrationDataset );
             
