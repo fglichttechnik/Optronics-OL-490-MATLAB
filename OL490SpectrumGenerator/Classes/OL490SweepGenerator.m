@@ -16,6 +16,7 @@ classdef OL490SweepGenerator < handle
         sweepPeriod             % duration of one sweep presentation: depending on sweepTime and sweepSteps
         currentSweepIndex       % index of current dimLevel of sweep
         currentSweepSpectrum    % current ol490Spectrum for currentSweepIndex (auto increments currentSweepIndex on each call)
+        dimLevels               % actual dim levels
     end
     
     events
@@ -37,7 +38,10 @@ classdef OL490SweepGenerator < handle
             obj.sweepPeriod = obj.sweepTime / obj.sweepSteps;
         end
         
+        %% get.currentSweepSpectrum
         function value = get.currentSweepSpectrum( obj )
+            
+            disp('accessing currentSweepSpectrum');
             
             %indicate out of bounds
             if( obj.currentSweepIndex > obj.sweepSteps )
@@ -56,7 +60,7 @@ classdef OL490SweepGenerator < handle
             end
             
             %auto increment sweep index
-            obj.currentSweepIndex = obj.currentSweepIndex;
+            obj.currentSweepIndex = obj.currentSweepIndex + 1;
         end
         
         %% generateSpectrum
@@ -89,7 +93,7 @@ classdef OL490SweepGenerator < handle
             else
                 error( 'unkown sweepType' );
             end
-            
+            obj.dimLevels = dimLevelArray;
             
             %generate sweepUp
             desiredLv = obj.ol490Spectrum.desiredLv;
