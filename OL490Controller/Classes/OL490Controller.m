@@ -1,5 +1,6 @@
-%author Jan Winter TU Berlin
-%email j.winter@tu-berlin.de
+AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
+		j.winter@tu-berlin.de, www.li.tu-berlin.de
+LICENSE: free to use at your own risk. Kudos appreciated.
 
 classdef OL490Controller < handle
     
@@ -17,8 +18,10 @@ classdef OL490Controller < handle
         end
         
         %% init connection
-        function obj = init( obj )
-            path = 'C:\Programme\GoochandHousego\OL 490 SDK\';
+        function obj = init( obj, path )
+        	if( nargin < 2 )
+            	path = 'C:\Programme\GoochandHousego\OL 490 SDK\';
+            end
             NET.addAssembly([path 'OLIPluginLibrary.dll']);
             NET.addAssembly([path 'OL490LIB.dll']);
             NET.addAssembly([path 'OL490_SDK_Dll.dll']);

@@ -1,8 +1,9 @@
-%author Jan Winter TU Berlin
-%email j.winter@tu-berlin.de
+AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
+		j.winter@tu-berlin.de, www.li.tu-berlin.de
+LICENSE: free to use at your own risk. Kudos appreciated.
 
 classdef OL490Calibration < handle
-    %% properties
+
     properties
         ol490Controller                 % controller for ol490
         numberOfMeasurementIterations   % number of repetitions per light level

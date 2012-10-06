@@ -1,11 +1,12 @@
-%author Jan Winter TU Berlin
-%email j.winter@tu-berlin.de
+AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
+		j.winter@tu-berlin.de, www.li.tu-berlin.de
+LICENSE: free to use at your own risk. Kudos appreciated.
 
 classdef OL490CalibrationSpectrum < handle
     %% properties
     properties
-        spectrum	% 
-        dimLevel	% dimLevel
+        spectrum	% raw OL490 values
+        dimLevel	% current dimLevel of calibration spectrum
     end
     methods
         %% constructor

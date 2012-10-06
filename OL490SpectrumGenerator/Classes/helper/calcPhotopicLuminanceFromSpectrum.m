@@ -1,5 +1,12 @@
-%%calc photopic luminance
+AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
+		j.winter@tu-berlin.de, www.li.tu-berlin.de
+LICENSE: free to use at your own risk. Kudos appreciated.
+
 function Lv_photopic = calcPhotopicLuminanceFromSpectrum( spectralRadianceData )
+%function Lv_photopic = calcPhotopicLuminanceFromSpectrum( spectralRadianceData )
+% calculates the photopic luminance from spectrum prepared for a OL490
+% spectralRadianceData has 1024 values ranging from 380 : 780
+
 load 'V_CIE.mat'  %load V_strich and lambda_CIE
 fromLambda = 380;
 toLambda = 780;

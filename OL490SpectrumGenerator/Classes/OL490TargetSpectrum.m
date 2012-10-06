@@ -1,12 +1,13 @@
-%author Jan Winter TU Berlin
-%email j.winter@tu-berlin.de
+AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
+		j.winter@tu-berlin.de, www.li.tu-berlin.de
+LICENSE: free to use at your own risk. Kudos appreciated.
 
 classdef OL490TargetSpectrum < handle
     %% properties
     properties
-        spectrum                    % 
-        dimValue                    % 
-        Lv
+        spectrum                    % the actual spectrum to send to the OL490
+        dimValue                    % the dimValue resulting from Lv and the maximum possible luminance
+        Lv 							% the desired luminance of the spectrum
     end
     methods
         %% constructor
