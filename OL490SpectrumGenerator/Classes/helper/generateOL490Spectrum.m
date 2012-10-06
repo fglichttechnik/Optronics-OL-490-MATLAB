@@ -1,6 +1,8 @@
-AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
-		j.winter@tu-berlin.de, www.li.tu-berlin.de
-LICENSE: free to use at your own risk. Kudos appreciated.
+% AUTHOR:	Jan Winter, Sandy Buschmann, TU Berlin, FG Lichttechnik,
+% 			j.winter@tu-berlin.de, www.li.tu-berlin.de
+% LICENSE: 	free to use at your own risk. Kudos appreciated.
+
+
 
 function [ ol490TargetSpectrum ] = generateOL490Spectrum( targetSpectrum, interpolatedSpectralDataCalibrationMatrix, inputOutputCalibrationMatrix, maxValueOfAllSpectra, dimFactor )
 %function [ ol490TargetSpectrum ] = generateOL490Spectrum( targetSpectrum, interpolatedSpectralDataCalibrationMatrix, inputOutputCalibrationMatrix, maxValueOfAllSpectra, dimFactor )

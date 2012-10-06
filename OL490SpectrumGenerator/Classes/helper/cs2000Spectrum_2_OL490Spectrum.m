@@ -1,6 +1,8 @@
-AUTHOR: Jan Winter, TU Berlin, FG Lichttechnik,
-		j.winter@tu-berlin.de, www.li.tu-berlin.de
-LICENSE: free to use at your own risk. Kudos appreciated.
+% AUTHOR:	Jan Winter, Sandy Buschmann, TU Berlin, FG Lichttechnik,
+% 			j.winter@tu-berlin.de, www.li.tu-berlin.de
+% LICENSE: 	free to use at your own risk. Kudos appreciated.
+
+
 
 function [ ol490Spectrum ] = cs2000Spectrum_2_OL490Spectrum( cs2000Measurement )
 % function [ ol490Spectrum ] = cs2000Spectrum_2_OL490Spectrum( cs2000Measurement )
