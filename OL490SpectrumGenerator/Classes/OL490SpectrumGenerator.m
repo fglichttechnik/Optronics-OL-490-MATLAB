@@ -9,6 +9,7 @@ classdef OL490SpectrumGenerator < handle
     properties
         targetSpectrumCS2000Measurement % original measurement file
         targetSpectrum              % this is the requested spectrum to generate OL490 adapted data for
+        targetSpectrumTag           % tag for TargetSpectrum
         desiredLv                   % these is the desired luminance
         ol490Spectrum               % these are the adapted spectra based on the calibration data for each dimLevel
         filePathToCalibrationData   % filePath to calibration data
@@ -17,16 +18,19 @@ classdef OL490SpectrumGenerator < handle
         spectralCorrectionFactor    % correctionFactor for discrepandy between desired and measured Spectrum
         ol490Calibration            % calibration data
         ol490Sweep                  % sweep to ol490Spectrum
+        documentedCS2000Measurement % for documentation purposes
+        correctionCS2000Measurement % for documentation purposes
     end
     
     methods
         %% constructor
-        function obj = OL490SpectrumGenerator( targetSpectrumCS2000Measurement, desiredLv, filePathToCalibrationData )
+        function obj = OL490SpectrumGenerator( targetSpectrumCS2000Measurement, desiredLv, filePathToCalibrationData, targetSpectrumTag )
             obj.targetSpectrumCS2000Measurement = targetSpectrumCS2000Measurement;
             obj.targetSpectrum = cs2000Spectrum_2_OL490Spectrum( obj.targetSpectrumCS2000Measurement );
             obj.desiredLv = desiredLv;
             obj.filePathToCalibrationData = filePathToCalibrationData;
             %obj.olType = olType;
+            obj.targetSpectrumTag = targetSpectrumTag;
             obj.correctionFactor = 1;
             obj.spectralCorrectionFactor = ones( size( obj.targetSpectrum ) );
         end
@@ -119,14 +123,38 @@ classdef OL490SpectrumGenerator < handle
             value = obj.ol490Calibration;
         end
         
+        %% calculateLuminancCorrectionFactor
+        function calculateLuminancCorrectionFactor( obj )
+            
+            %measure data
+            obj.correctionCS2000Measurement = obj.measureSpectralVariance();
+            actualCS2000Measurement = obj.correctionCS2000Measurement;
+            
+            %calculate correction factor
+            actualMeasurement = cs2000Spectrum_2_OL490Spectrum( actualCS2000Measurement );
+            relativeMeasurementSpectrum = actualMeasurement / max( actualMeasurement );
+            relativeTargetSpectrum = obj.targetSpectrum / max( obj.targetSpectrum );
+            obj.spectralCorrectionFactor = relativeMeasurementSpectrum ./ relativeTargetSpectrum;
+            obj.correctionFactor = 1 / ( actualCS2000Measurement.colorimetricData.Lv / obj.desiredLv );
+            disp( sprintf( 'correctionFactor: %1.2f', obj.correctionFactor ) );
+        end
+        
         %% documentSpectralVariance
-        function documentSpectralVariance( obj )
+        function documentSpectralVariance( obj, titleString, fileName )
+            
+            % save measured data for documentation
+            obj.documentedCS2000Measurement = obj.measureSpectralVariance( titleString, fileName  );
+        end
+        
+        %% measureSpectralVariance
+        function actualCS2000Measurement = measureSpectralVariance( obj, titleString, fileName )
             
             % measure spectrum via CS2000
             disp( 'measuring' );
-            CS2000_initConnection();
+            %CS2000_initConnection();
             [message1, message2, actualCS2000Measurement, colorimetricNames] = CS2000_measure();
-            CS2000_terminateConnection();
+            %CS2000_terminateConnection();
+            pause( 1 );
             
             %prepare save
             currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );
@@ -141,12 +169,16 @@ classdef OL490SpectrumGenerator < handle
             plot( actualCS2000Measurement, 'gr' );
             hold off;
             legend( 'target', 'actual'  );
+            
+            if( exist( 'titleString' ) )
+                title( titleString );
+            end
             %ylabel( 'L_{e,rel}(\lambda)' );
             y = ylabel('$$\mbox{L}_{e,rel}(\lambda)$$');
             set(y,'Interpreter','LaTeX','FontSize',14)
             %save variable to mat file which will be overwritten every time
             %fileName = sprintf( 'targetSpectralVariance_%s.mat', currentTimeString );
-            %save( fileName, 'actualCS2000Measurement' );
+            
             luminanceText = sprintf( 'Lv,act = %3.3f cd/m^2', actualCS2000Measurement.colorimetricData.Lv );
             luminanceTextRef = sprintf( 'Lv,tar = %3.3f cd/m^2', obj.desiredLv );
             t=text( 0.1, 0.1, luminanceText, 'Units', 'normalized' );
@@ -154,12 +186,32 @@ classdef OL490SpectrumGenerator < handle
             set( gca, 'YScale', 'lin' );
             disp( sprintf( 'measured luminance: %3.3f cd/m^2', actualCS2000Measurement.colorimetricData.Lv ) );
             
-            actualMeasurement = cs2000Spectrum_2_OL490Spectrum( actualCS2000Measurement );
-            relativeMeasurementSpectrum = actualMeasurement / max( actualMeasurement );
-            relativeTargetSpectrum = obj.targetSpectrum / max( obj.targetSpectrum );
-            obj.spectralCorrectionFactor = relativeMeasurementSpectrum ./ relativeTargetSpectrum;
-            obj.correctionFactor = 1 / ( actualCS2000Measurement.colorimetricData.Lv / obj.desiredLv );
-            disp( sprintf( 'correctionFactor: %1.2f', obj.correctionFactor ) );
+            %prepare filename and save
+            if( exist( 'fileName' ) && exist( 'titleString' ) )
+                spacesIndices = strfind( titleString,' ' );
+                for currentSpaceIndex = 1 : length( spacesIndices )
+                    titleString( spacesIndices( currentSpaceIndex ) ) = '_';
+                end
+                spacesIndices = strfind( titleString,'^' );
+                for currentSpaceIndex = 1 : length( spacesIndices )
+                    titleString( spacesIndices( currentSpaceIndex ) ) = '_';
+                end
+                spacesIndices = strfind( titleString,'/' );
+                for currentSpaceIndex = 1 : length( spacesIndices )
+                    titleString( spacesIndices( currentSpaceIndex ) ) = '_';
+                end
+                spacesIndices = strfind( titleString,'.' );
+                for currentSpaceIndex = 1 : length( spacesIndices )
+                    titleString( spacesIndices( currentSpaceIndex ) ) = '_';
+                end
+                
+                disp( sprintf( 'saving with fileName: %s', titleString ) );
+                saveas( gcf(), sprintf('%s_measurement_%s', fileName, titleString ), 'fig' );
+                saveas( gcf(), sprintf('%s_measurement_%s', fileName, titleString ), 'epsc' );
+            end
+            close( gcf() );
+            
+            
         end
     end
 end

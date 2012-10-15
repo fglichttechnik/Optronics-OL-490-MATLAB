@@ -19,6 +19,7 @@ classdef OL490SweepGenerator < handle
         sweepPeriod             % duration of one sweep presentation: depending on sweepTime and sweepSteps
         currentSweepIndex       % index of current dimLevel of sweep
         currentSweepSpectrum    % current ol490Spectrum for currentSweepIndex (auto increments currentSweepIndex on each call)
+        currentSweepSpectrumAtCurrentIndex    % current ol490Spectrum for currentSweepIndex (without auto increments currentSweepIndex on each call)
         dimLevels               % actual dim levels
     end
     
@@ -41,16 +42,14 @@ classdef OL490SweepGenerator < handle
             obj.sweepPeriod = obj.sweepTime / obj.sweepSteps;
         end
         
-        %% get.currentSweepSpectrum
-        function value = get.currentSweepSpectrum( obj )
-            
-            disp('accessing currentSweepSpectrum');
+        %% get.currentSweepSpectrumAtCurrentIndex
+        function value = get.currentSweepSpectrumAtCurrentIndex ( obj )
             
             %indicate out of bounds
             if( obj.currentSweepIndex > obj.sweepSteps )
                 notify( obj, 'sweepDoneNotification' );
-                value = [];
-                return;
+                
+                obj.currentSweepIndex = obj.sweepSteps;
             end
             
             %get corresponding sweep spectrum
@@ -61,6 +60,15 @@ classdef OL490SweepGenerator < handle
             else
                 error( 'unknown sweep mode' );
             end
+            
+        end
+        
+        %% get.currentSweepSpectrum
+        function value = get.currentSweepSpectrum( obj )
+            
+            disp('accessing currentSweepSpectrum');
+            
+            value = obj.currentSweepSpectrumAtCurrentIndex();
             
             %auto increment sweep index
             obj.currentSweepIndex = obj.currentSweepIndex + 1;
@@ -100,12 +108,13 @@ classdef OL490SweepGenerator < handle
             
             %generate sweepUp
             desiredLv = obj.ol490Spectrum.desiredLv;
+            spectrumTag = obj.ol490Spectrum.targetSpectrumTag;
             obj.ol490SpectrumArrayUp = cell( numberOfSweepSteps, 1  );
             for currentDimLevelIndex = 1 : numberOfSweepSteps
                 currentDimLevel = dimLevelArray( currentDimLevelIndex );           
                 currentLv = desiredLv * currentDimLevel;
                 disp( sprintf( 'current sweepIndex: %d withDimlevel: %1.3f withLv: %1.3f', currentDimLevelIndex, currentDimLevel, currentLv ) );
-                currentOL490Spectrum = OL490SpectrumGenerator( targetSpectrumCS2000Measurement, currentLv, filePathForCalibrationFile )
+                currentOL490Spectrum = OL490SpectrumGenerator( targetSpectrumCS2000Measurement, currentLv, filePathForCalibrationFile, spectrumTag )
                 currentOL490Spectrum.ol490Calibration = obj.ol490Spectrum.ol490Calibration;
                 currentOL490Spectrum.generateSpectrum( );
                 currentOL490Spectrum.ol490Calibration = [];
