@@ -18,9 +18,12 @@ classdef OL490SweepGenerator < handle
         sweepSteps              % number of iterations
         sweepPeriod             % duration of one sweep presentation: depending on sweepTime and sweepSteps
         currentSweepIndex       % index of current dimLevel of sweep
+        dimLevels               % actual dim levels
+    end
+    properties(Dependent)
         currentSweepSpectrum    % current ol490Spectrum for currentSweepIndex (auto increments currentSweepIndex on each call)
         currentSweepSpectrumAtCurrentIndex    % current ol490Spectrum for currentSweepIndex (without auto increments currentSweepIndex on each call)
-        dimLevels               % actual dim levels
+        
     end
     
     events
@@ -44,10 +47,10 @@ classdef OL490SweepGenerator < handle
         
         %% get.currentSweepSpectrumAtCurrentIndex
         function value = get.currentSweepSpectrumAtCurrentIndex ( obj )
-            
+            value = [];
             %indicate out of bounds
             if( obj.currentSweepIndex > obj.sweepSteps )
-                notify( obj, 'sweepDoneNotification' );
+               % notify( obj, 'sweepDoneNotification' );
                 
                 obj.currentSweepIndex = obj.sweepSteps;
             end
@@ -58,13 +61,14 @@ classdef OL490SweepGenerator < handle
             elseif( strcmp( obj.sweepMode, 'down' ) )
                 value = obj.ol490SpectrumArrayDown{ obj.currentSweepIndex };
             else
-                error( 'unknown sweep mode' );
+                disp( 'unknown sweep mode' );
             end
             
         end
         
         %% get.currentSweepSpectrum
         function value = get.currentSweepSpectrum( obj )
+            value = [];
             
             disp('accessing currentSweepSpectrum');
             
@@ -80,11 +84,11 @@ classdef OL490SweepGenerator < handle
             %prepare data
             targetSpectrumCS2000Measurement = obj.ol490Spectrum.targetSpectrumCS2000Measurement;
             filePathForCalibrationFile = obj.ol490Spectrum.filePathToCalibrationData;
-            %ol490Type = obj.ol490Spectrum.olType;            
+            %ol490Type = obj.ol490Spectrum.olType;
             numberOfSweepSteps = obj.sweepSteps;
             obj.currentSweepIndex = 1;
             
-            %generate dimLevels            
+            %generate dimLevels
             minDimlevelRatio = obj.minDimLevelRatio;
             maxDimlevelRatio = obj.maxDimLevelRatio;
             if( strcmp( obj.sweepType, 'lin' ) )
@@ -111,10 +115,10 @@ classdef OL490SweepGenerator < handle
             spectrumTag = obj.ol490Spectrum.targetSpectrumTag;
             obj.ol490SpectrumArrayUp = cell( numberOfSweepSteps, 1  );
             for currentDimLevelIndex = 1 : numberOfSweepSteps
-                currentDimLevel = dimLevelArray( currentDimLevelIndex );           
+                currentDimLevel = dimLevelArray( currentDimLevelIndex );
                 currentLv = desiredLv * currentDimLevel;
                 disp( sprintf( 'current sweepIndex: %d withDimlevel: %1.3f withLv: %1.3f', currentDimLevelIndex, currentDimLevel, currentLv ) );
-                currentOL490Spectrum = OL490SpectrumGenerator( targetSpectrumCS2000Measurement, currentLv, filePathForCalibrationFile, spectrumTag )
+                currentOL490Spectrum = OL490SpectrumGenerator( targetSpectrumCS2000Measurement, currentLv, filePathForCalibrationFile, spectrumTag );
                 currentOL490Spectrum.ol490Calibration = obj.ol490Spectrum.ol490Calibration;
                 currentOL490Spectrum.generateSpectrum( );
                 currentOL490Spectrum.ol490Calibration = [];
@@ -126,25 +130,8 @@ classdef OL490SweepGenerator < handle
             for currentDimLevelIndex = 1 : numberOfSweepSteps
                 obj.ol490SpectrumArrayDown{ currentDimLevelIndex } = obj.ol490SpectrumArrayUp{ numberOfSweepSteps - currentDimLevelIndex + 1 };
             end
-            
-%             timeForStimuliInS = 10;
-%             ol490Controller.sendSpectrum( spectra{1}.ol490Spectrum.spectrum );
-%             ol490Controller.openShutter();
-%             start = tic();
-%             for i = 1 : numberOfLevels
-%                 timePerStimulus = timeForStimuliInS / numberOfLevels;
-%                 tic();
-%                 ol490Controller.sendSpectrum( spectra{i}.ol490Spectrum.spectrum );
-%                 timePassed = toc();
-%                 if( timePassed < timePerStimulus )
-%                     timeToWait = timePerStimulus - timePassed;
-%                     disp( sprintf( 'waiting %f: s', timeToWait ) );
-%                     pause( timeToWait );
-%                 else
-%                     disp( sprintf( 'too much time passed: %f s', timePassed ) );
-%                 end
-%             end
-%             disp( sprintf( 'total time elapsed: %f s', toc( start ) ) );
+         
+
         end
     end
 end

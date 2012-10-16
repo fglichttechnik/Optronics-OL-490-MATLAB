@@ -86,6 +86,29 @@ classdef OL490SpectrumGenerator < handle
                 numberOfIterations = numberOfIterations + 1;
             end
             
+            %save spectrum
+            obj.ol490Spectrum = ol490TargetSpectrum;
+        end
+        
+        %% prepareSweep
+        function prepareSweep( obj, sweepTime, sweepType, sweepMode, sweepSteps, minDimLevelRatio, maxDimLevelRatio )
+            obj.ol490Sweep = OL490SweepGenerator( obj, sweepTime, sweepType, sweepMode, sweepSteps, minDimLevelRatio, maxDimLevelRatio );
+            obj.ol490Sweep.generateSweep();
+        end
+        
+        %% removeInterpolatedCalibrationData
+        function removeInterpolatedCalibrationData( obj )
+            obj.ol490Calibration.calibrationDataPrepared = 0;
+            obj.ol490Calibration.inputOutputCalibrationMatrix = [];
+            obj.ol490Calibration.interpolatedSpectralDataCalibrationMatrix = [];
+            obj.ol490Calibration.maxValueOfAllSpectra = [];
+        end
+        
+        %% visualizeData
+        function visualizeData( obj )
+            
+            ol490TargetSpectrum = obj.ol490Spectrum;
+            
             %visualize data
             from = 100;
             to = length( ol490TargetSpectrum.spectrum ) - 100;
@@ -98,14 +121,6 @@ classdef OL490SpectrumGenerator < handle
             hold off;
             legend( 'target', 'ol490', 'xenon' );
             
-            %save spectrum
-            obj.ol490Spectrum = ol490TargetSpectrum;
-        end
-        
-        %% prepareSweep
-        function prepareSweep( obj, sweepTime, sweepType, sweepMode, sweepSteps, minDimLevelRatio, maxDimLevelRatio )
-            obj.ol490Sweep = OL490SweepGenerator( obj, sweepTime, sweepType, sweepMode, sweepSteps, minDimLevelRatio, maxDimLevelRatio );
-            obj.ol490Sweep.generateSweep();
         end
         
         %% get.ol490Calibration
