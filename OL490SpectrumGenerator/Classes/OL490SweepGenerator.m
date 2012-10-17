@@ -10,8 +10,10 @@ classdef OL490SweepGenerator < handle
         ol490Spectrum           % the maximum spectrum
         ol490SpectrumArrayUp      % the array with intermediate luminance levels
         ol490SpectrumArrayDown      % inverted ol490SpectrumArrayUp
-        minDimLevelRatio        % dimFactor for lowest dimLevel as factor on Lv of ol490Spectrum
-        maxDimLevelRatio        % dimFactor for highest dimLevel as factor on Lv of ol490Spectrum
+        %minDimLevelRatio        % dimFactor for lowest dimLevel as factor on Lv of ol490Spectrum
+        %maxDimLevelRatio        % dimFactor for highest dimLevel as factor on Lv of ol490Spectrum
+        minDesiredLv            % this is the Lv where we start
+        maxDesiredLv             % this is the Lv where we end
         sweepType               % sweep type: linear, logarithmic (lin, log)
         sweepMode               % up or down
         sweepTime               % time for whole sweep
@@ -32,14 +34,14 @@ classdef OL490SweepGenerator < handle
     
     methods
         %% constructor
-        function obj = OL490SweepGenerator( ol490Spectrum, sweepTime, sweepType, sweepMode, sweepSteps, minDimLevelRatio, maxDimLevelRatio )
+        function obj = OL490SweepGenerator( ol490Spectrum, sweepTime, sweepType, sweepMode, sweepSteps, minDesiredLv, maxDesiredLv )
             obj.ol490Spectrum = ol490Spectrum;
             obj.sweepTime = sweepTime;
             obj.sweepSteps = sweepSteps;
             obj.sweepMode = sweepMode;
             obj.sweepType = sweepType;
-            obj.minDimLevelRatio = minDimLevelRatio;
-            obj.maxDimLevelRatio = maxDimLevelRatio;
+            obj.minDesiredLv = minDesiredLv;
+            obj.maxDesiredLv = maxDesiredLv;
             obj.currentSweepIndex = 1;
             
             obj.sweepPeriod = obj.sweepTime / obj.sweepSteps;
@@ -50,7 +52,7 @@ classdef OL490SweepGenerator < handle
             value = [];
             %indicate out of bounds
             if( obj.currentSweepIndex > obj.sweepSteps )
-               % notify( obj, 'sweepDoneNotification' );
+                notify( obj, 'sweepDoneNotification' );
                 
                 obj.currentSweepIndex = obj.sweepSteps;
             end
@@ -89,10 +91,10 @@ classdef OL490SweepGenerator < handle
             obj.currentSweepIndex = 1;
             
             %generate dimLevels
-            minDimlevelRatio = obj.minDimLevelRatio;
-            maxDimlevelRatio = obj.maxDimLevelRatio;
+            minDesiredLv = obj.minDesiredLv;
+            maxDesiredLv = obj.maxDesiredLv;
             if( strcmp( obj.sweepType, 'lin' ) )
-                dimLevelArray = linspace( minDimlevelRatio, maxDimlevelRatio, numberOfSweepSteps );
+                dimLevelArray = linspace( minDesiredLv, maxDesiredLv, numberOfSweepSteps );
             elseif( strcmp( obj.sweepType, 'log' ) )
                 tao = 35;
                 steps = linspace( 0, numberOfSweepSteps, numberOfSweepSteps );
@@ -103,7 +105,7 @@ classdef OL490SweepGenerator < handle
                 dimValues = dimValues + minimum;
                 maximum = max( dimValues );
                 dimValues = dimValues / maximum;
-                dimValues = dimValues * maxDimlevelRatio;
+                dimValues = dimValues * maxDesiredLv;
                 dimLevelArray = dimValues;
             else
                 error( 'unkown sweepType' );
@@ -132,6 +134,23 @@ classdef OL490SweepGenerator < handle
             end
          
 
+        end
+        
+        %% attachCorrectionFactorsToSweepSpectra
+        function attachCorrectionFactorsToSweepSpectra( obj, correctionFactorArray )
+            for currentIndex = 1 : obj.sweepSteps
+                currentSpectrum = obj.ol490SpectrumArrayUp{ currentIndex };
+                currentCorrectionFactor = correctionFactorArray( currentIndex );
+                currentSpectrum.correctionFactor = currentCorrectionFactor;
+            end
+        end
+        
+        %% resetCorrectionFactorsToSweepSpectra
+        function resetCorrectionFactorsToSweepSpectra( obj )
+            for currentIndex = 1 : obj.sweepSteps
+                currentSpectrum = obj.ol490SpectrumArrayUp{ currentIndex };
+                currentSpectrum.correctionFactor = 1;
+            end
         end
     end
 end

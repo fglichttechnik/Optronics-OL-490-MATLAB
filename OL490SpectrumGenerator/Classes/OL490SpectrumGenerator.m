@@ -15,7 +15,8 @@ classdef OL490SpectrumGenerator < handle
         filePathToCalibrationData   % filePath to calibration data
         %olType                      % target, background or glare OL490
         correctionFactor            % correctionFactor (discrepancy between desired and measured Lv)
-        spectralCorrectionFactor    % correctionFactor for discrepandy between desired and measured Spectrum
+        peripheralCorrectionFactor  % correction factor if presented on peripheral position due to inhomogenity
+        %spectralCorrectionFactor    % correctionFactor for discrepandy between desired and measured Spectrum
         ol490Calibration            % calibration data
         ol490Sweep                  % sweep to ol490Spectrum
         documentedCS2000Measurement % for documentation purposes
@@ -32,7 +33,8 @@ classdef OL490SpectrumGenerator < handle
             %obj.olType = olType;
             obj.targetSpectrumTag = targetSpectrumTag;
             obj.correctionFactor = 1;
-            obj.spectralCorrectionFactor = ones( size( obj.targetSpectrum ) );
+            obj.peripheralCorrectionFactor = 1;
+            %obj.spectralCorrectionFactor = ones( size( obj.targetSpectrum ) );
         end
         
         %% generateSpectrum
@@ -114,12 +116,14 @@ classdef OL490SpectrumGenerator < handle
             to = length( ol490TargetSpectrum.spectrum ) - 100;
             disp( sprintf( 'meanOfSpectrum: %5.0f stdOfSpectrum: %5.1f', mean( ol490TargetSpectrum.spectrum( from : to ) ), std( ol490TargetSpectrum.spectrum( from : to ) ) )  );
             xenonSpectrum = cs2000Spectrum_2_OL490Spectrum(obj.ol490Calibration.cs2000MeasurementCellArray{end} );
+            figure();
             plot( obj.targetSpectrum / max ( obj.targetSpectrum ), 'r');
             hold on;
             plot( ol490TargetSpectrum.spectrum / max ( ol490TargetSpectrum.spectrum ), 'gr');
             plot( xenonSpectrum / max ( xenonSpectrum ), 'b');
             hold off;
             legend( 'target', 'ol490', 'xenon' );
+            close( gcf() );
             
         end
         
@@ -149,9 +153,24 @@ classdef OL490SpectrumGenerator < handle
             actualMeasurement = cs2000Spectrum_2_OL490Spectrum( actualCS2000Measurement );
             relativeMeasurementSpectrum = actualMeasurement / max( actualMeasurement );
             relativeTargetSpectrum = obj.targetSpectrum / max( obj.targetSpectrum );
-            obj.spectralCorrectionFactor = relativeMeasurementSpectrum ./ relativeTargetSpectrum;
+            %obj.spectralCorrectionFactor = relativeMeasurementSpectrum ./ relativeTargetSpectrum;
             obj.correctionFactor = 1 / ( actualCS2000Measurement.colorimetricData.Lv / obj.desiredLv );
-            disp( sprintf( 'correctionFactor: %1.2f', obj.correctionFactor ) );
+            disp( sprintf( 'correctionFactor: %1.2f (desiredLuminance: %2.3f)', obj.correctionFactor, obj.desiredLv ) );
+        end
+        
+        %% adjustLuminanceCorrectionFactorForProjectedBackgroundLuminance 
+        function adjustLuminanceCorrectionFactorForProjectedBackgroundLuminance( obj, backgroundLuminance )
+            
+            actualCS2000Measurement = obj.correctionCS2000Measurement;
+            
+            %recalculate correction factor
+            actualMeasurement = cs2000Spectrum_2_OL490Spectrum( actualCS2000Measurement );
+            relativeMeasurementSpectrum = actualMeasurement / max( actualMeasurement );
+            relativeTargetSpectrum = obj.targetSpectrum / max( obj.targetSpectrum );
+            %obj.spectralCorrectionFactor = relativeMeasurementSpectrum ./ relativeTargetSpectrum;
+            oldCorrectionFactor = obj.correctionFactor;
+            obj.correctionFactor = abs( 1 / ( ( actualCS2000Measurement.colorimetricData.Lv - backgroundLuminance ) / obj.desiredLv ) );
+            disp( sprintf( 'adjusted correctionFactorTo: %1.2f (from: %1.2f) (desiredLuminance: %2.3f)', obj.correctionFactor, oldCorrectionFactor, obj.desiredLv ) );
         end
         
         %% documentSpectralVariance
