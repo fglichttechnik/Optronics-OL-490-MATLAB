@@ -236,11 +236,18 @@ classdef OL490Calibration < handle
             if ( isempty( obj.calibrationSpectrumCellArray ) )
                 
                 % we make 5 more precise measurements from 0 : 0.1
-                numberOfPreciseDimLevels = 10;%0;
-                toValueOfPreciseMeasurements = 0.1;%0;
-                numberOfDimLevels = obj.numberOfDimLevels - numberOfPreciseDimLevels;
-                dimStepIncrease = (1 - toValueOfPreciseMeasurements) / ( numberOfDimLevels - 1 );
-                dimStepIncreasePrecise = toValueOfPreciseMeasurements / ( numberOfPreciseDimLevels - 1 );
+             %   numberOfPreciseDimLevels = 0;%10;%0;
+            %    toValueOfPreciseMeasurements = 0;%0.1;%0;
+             %   numberOfDimLevels = obj.numberOfDimLevels - numberOfPreciseDimLevels;
+             %   dimStepIncrease = (1 - toValueOfPreciseMeasurements) / ( numberOfDimLevels - 1 );
+             %   dimStepIncreasePrecise = toValueOfPreciseMeasurements / ( numberOfPreciseDimLevels - 1 );
+                
+                % 1 percent steps from 0 to 20
+                dimLevelArrayLow = 0.0 : 0.01 : 0.2;
+                % 5 percent steps from 20 to 100
+                dimLevelArrayHigh = 0.25 : 0.05 : 1.0;
+                dimLevelArray = [ dimLevelArrayLow, dimLevelArrayHigh ];
+                numberOfDimLevels = length ( dimLevelArray );
                 
                 calibrationSpectrumCellArray = cell( numberOfDimLevels, 1 );
                 obj.calibrationSpectrumDimLevelArray = zeros( numberOfDimLevels, 1 );
@@ -248,17 +255,18 @@ classdef OL490Calibration < handle
                 OL490_MAX_VALUE = 49152;
                 
                 currentDimValue = 0;    %will increase by dimStepIncrease each step
-                for currentSpectrumIndex = 1 : numberOfDimLevels + numberOfPreciseDimLevels
+                for currentSpectrumIndex = 1 : numberOfDimLevels %+ numberOfPreciseDimLevels
+                currentDimValue = dimLevelArray( currentSpectrumIndex );
                     currentSpectrum = ones( 1024, 1 ) * OL490_MAX_VALUE * currentDimValue;
                     calibrationSpectrum = OL490CalibrationSpectrum( currentSpectrum, currentDimValue );
                     calibrationSpectrumCellArray{ currentSpectrumIndex } = calibrationSpectrum;
                     obj.calibrationSpectrumDimLevelArray( currentSpectrumIndex ) = currentDimValue;
                     %incearse dimValue for next iteration
-                    if( currentSpectrumIndex < numberOfPreciseDimLevels )
-                        currentDimValue = currentDimValue + dimStepIncreasePrecise;
-                    else
-                        currentDimValue = currentDimValue + dimStepIncrease;
-                    end
+                   % if( currentSpectrumIndex < numberOfPreciseDimLevels )
+                   %     currentDimValue = currentDimValue + dimStepIncreasePrecise;
+                  %  else
+                  %      currentDimValue = currentDimValue + dimStepIncrease;
+                  %  end
                     
                 end
                 
