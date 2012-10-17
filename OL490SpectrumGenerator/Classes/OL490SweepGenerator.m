@@ -15,7 +15,7 @@ classdef OL490SweepGenerator < handle
         minDesiredLv            % this is the Lv where we start
         maxDesiredLv             % this is the Lv where we end
         sweepType               % sweep type: linear, logarithmic (lin, log)
-        sweepMode               % up or down
+        sweepMode               % sweepUp or sweepDown
         sweepTime               % time for whole sweep
         sweepSteps              % number of iterations
         sweepPeriod             % duration of one sweep presentation: depending on sweepTime and sweepSteps
@@ -58,9 +58,9 @@ classdef OL490SweepGenerator < handle
             end
             
             %get corresponding sweep spectrum
-            if( strcmp( obj.sweepMode, 'up' ) )
+            if( strcmp( obj.sweepMode, 'sweepUp' ) )
                 value = obj.ol490SpectrumArrayUp{ obj.currentSweepIndex };
-            elseif( strcmp( obj.sweepMode, 'down' ) )
+            elseif( strcmp( obj.sweepMode, 'sweepDown' ) )
                 value = obj.ol490SpectrumArrayDown{ obj.currentSweepIndex };
             else
                 disp( 'unknown sweep mode' );

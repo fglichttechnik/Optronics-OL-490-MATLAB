@@ -240,8 +240,8 @@ classdef OL490SpectrumGenerator < handle
                 end
                 
                 disp( sprintf( 'saving with fileName: %s', titleString ) );
-                saveas( gcf(), sprintf('%s_measurement_%s', fileName, titleString ), 'fig' );
-                saveas( gcf(), sprintf('%s_measurement_%s', fileName, titleString ), 'epsc' );
+               % saveas( gcf(), sprintf('%s_measurement_%s', fileName, titleString ), 'fig' );
+               % saveas( gcf(), sprintf('%s_measurement_%s', fileName, titleString ), 'epsc' );
             end
             close( gcf() );
             
