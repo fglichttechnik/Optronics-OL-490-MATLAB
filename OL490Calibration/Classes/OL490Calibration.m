@@ -1,4 +1,4 @@
-% AUTHOR:	Jan Winter, Sandy Buschmann, TU Berlin, FG Lichttechnik,
+% AUTHOR:	Jan Winter, Marian Leifert, Sandy Buschmann, TU Berlin, FG Lichttechnik,
 % 			j.winter@tu-berlin.de, www.li.tu-berlin.de
 % LICENSE: 	free to use at your own risk. Kudos appreciated.
 
@@ -31,12 +31,12 @@ classdef OL490Calibration < handle
     end
     methods
         %% constructor
-        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, numberOfMeasurementIterations, timeToWaitBeforeMeasurementInS, numberOfDimLevels, calibrationType )
+        function obj = OL490Calibration( ol490CalibrationDataset, ol490Index, cs2000NDFilter, timeToWaitBeforeMeasurementInS, numberOfDimLevels, calibrationType )
             obj.ol490CalibrationDataset = ol490CalibrationDataset;
             obj.timeToWaitBeforeMeasurementInS = timeToWaitBeforeMeasurementInS;
             obj.ol490Index = ol490Index;
             obj.cs2000NDFilter = cs2000NDFilter;
-            obj.numberOfMeasurementIterations = numberOfMeasurementIterations;
+            obj.numberOfMeasurementIterations = 1;
             %obj.sendProgressToURL = sendProgressToURL;
             obj.numberOfDimLevels = numberOfDimLevels;
             obj.calibrationType = calibrationType;
@@ -236,11 +236,18 @@ classdef OL490Calibration < handle
             if ( isempty( obj.calibrationSpectrumCellArray ) )
                 
                 % we make 5 more precise measurements from 0 : 0.1
-                numberOfPreciseDimLevels = 0;%10;
-                toValueOfPreciseMeasurements = 0;%0.1;
-                numberOfDimLevels = obj.numberOfDimLevels - numberOfPreciseDimLevels;
-                dimStepIncrease = (1 - toValueOfPreciseMeasurements) / ( numberOfDimLevels - 1 );
-                dimStepIncreasePrecise = toValueOfPreciseMeasurements / ( numberOfPreciseDimLevels - 1 );
+             %   numberOfPreciseDimLevels = 0;%10;%0;
+            %    toValueOfPreciseMeasurements = 0;%0.1;%0;
+             %   numberOfDimLevels = obj.numberOfDimLevels - numberOfPreciseDimLevels;
+             %   dimStepIncrease = (1 - toValueOfPreciseMeasurements) / ( numberOfDimLevels - 1 );
+             %   dimStepIncreasePrecise = toValueOfPreciseMeasurements / ( numberOfPreciseDimLevels - 1 );
+                
+                % 1 percent steps from 0 to 20
+                dimLevelArrayLow = 0.0 : 0.01 : 0.2;
+                % 5 percent steps from 20 to 100
+                dimLevelArrayHigh = 0.25 : 0.05 : 1.0;
+                dimLevelArray = [ dimLevelArrayLow, dimLevelArrayHigh ];
+                numberOfDimLevels = length ( dimLevelArray );
                 
                 calibrationSpectrumCellArray = cell( numberOfDimLevels, 1 );
                 obj.calibrationSpectrumDimLevelArray = zeros( numberOfDimLevels, 1 );
@@ -248,17 +255,18 @@ classdef OL490Calibration < handle
                 OL490_MAX_VALUE = 49152;
                 
                 currentDimValue = 0;    %will increase by dimStepIncrease each step
-                for currentSpectrumIndex = 1 : numberOfDimLevels + numberOfPreciseDimLevels
+                for currentSpectrumIndex = 1 : numberOfDimLevels %+ numberOfPreciseDimLevels
+                currentDimValue = dimLevelArray( currentSpectrumIndex );
                     currentSpectrum = ones( 1024, 1 ) * OL490_MAX_VALUE * currentDimValue;
                     calibrationSpectrum = OL490CalibrationSpectrum( currentSpectrum, currentDimValue );
                     calibrationSpectrumCellArray{ currentSpectrumIndex } = calibrationSpectrum;
                     obj.calibrationSpectrumDimLevelArray( currentSpectrumIndex ) = currentDimValue;
                     %incearse dimValue for next iteration
-                    if( currentSpectrumIndex < numberOfPreciseDimLevels )
-                        currentDimValue = currentDimValue + dimStepIncreasePrecise;
-                    else
-                        currentDimValue = currentDimValue + dimStepIncrease;
-                    end
+                   % if( currentSpectrumIndex < numberOfPreciseDimLevels )
+                   %     currentDimValue = currentDimValue + dimStepIncreasePrecise;
+                  %  else
+                  %      currentDimValue = currentDimValue + dimStepIncrease;
+                  %  end
                     
                 end
                 
@@ -299,10 +307,12 @@ classdef OL490Calibration < handle
             obj.maxValueOfAllSpectra = max( max( spectral_data_dimLevels ) );
             spectral_data_dimLevelsRelative = spectral_data_dimLevels ./ obj.maxValueOfAllSpectra;
             
-            %figure();
-            %mesh( spectral_data_dimLevelsRelative );
-            %saveas( gcf, 'spectral_data_dimLevelsRelative', 'fig' );
-            %saveas( gcf, 'spectral_data_dimLevelsRelative', 'epsc' );
+            figure();
+            mesh( spectral_data_dimLevelsRelative );
+            fileName = sprintf( 'spectral_data_dimLevelsRelative_%s_%s', obj.calibrationDate, obj.calibrationType );
+            saveas( gcf, fileName, 'fig' );
+            saveas( gcf, fileName, 'epsc' );
+            close( gcf() );
             
             %generate interpolated reference data
             dimLevelResolutionInterpolated   = 0 : 0.1 : 100;

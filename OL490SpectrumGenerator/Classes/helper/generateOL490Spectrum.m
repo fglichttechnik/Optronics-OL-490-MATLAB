@@ -1,4 +1,4 @@
-% AUTHOR:	Jan Winter, Sandy Buschmann, TU Berlin, FG Lichttechnik,
+% AUTHOR:	Marian Leifert, Jan Winter, Sandy Buschmann, TU Berlin, FG Lichttechnik,
 % 			j.winter@tu-berlin.de, www.li.tu-berlin.de
 % LICENSE: 	free to use at your own risk. Kudos appreciated.
 
@@ -15,19 +15,6 @@ function [ ol490TargetSpectrum ] = generateOL490Spectrum( targetSpectrum, interp
 %   interpolatedMaxValuesForDimLevelSpectra     - values to recalculate real value of percentual value (needed for Lv)
 
 OL490MAX = 49152;
-% if nargin < 5
-%     dimFactor = 1;
-% else
-%     if dimFactor > 1
-%         dimFactor = 1;
-%     end
-% end
-
-% targetSpectrum,
-% interpolatedSpectralDataCalibrationMatrix,
-% inputOutputCalibrationMatrix,
-% interpolatedMaxValuesForDimLevelSpectra,
-% dimFactor
 
 %userSpectrum preparation
 %list with smallest value differences between
@@ -42,6 +29,7 @@ indexToSpectralLine = ( numberOfSpectralLines - 256);%256 );      %  680nm
 numberOfInterestingSpectralLines = length( indexFromSpectralLine : indexToSpectralLine );
 smallestDifferencesBetweenTargetAndCalibrationSpectrum = zeros( numberOfInterestingSpectralLines, 1 );
 
+%buffer = zeros( size( interpolatedSpectralDataCalibrationMatrix ) );
 %find minimum between targetSpectrum and dimLevelCalibration
 for spectralLineIndex = indexFromSpectralLine : indexToSpectralLine
     currentDimLevels = interpolatedSpectralDataCalibrationMatrix( :, spectralLineIndex );
@@ -49,11 +37,18 @@ for spectralLineIndex = indexFromSpectralLine : indexToSpectralLine
     diffTargetSpectralLine2CalibrationDimValue = abs( currentDimLevels - currentTargetSpectralLine );
     smallestDifference = min( diffTargetSpectralLine2CalibrationDimValue );
     smallestDifferencesBetweenTargetAndCalibrationSpectrum( spectralLineIndex - indexFromSpectralLine + 1 ) = smallestDifference;
+    %buffer( :, spectralLineIndex ) = diffTargetSpectralLine2CalibrationDimValue;
 end
+
+ %smallestDifferencesBetweenTargetAndCalibrationSpectrum = min( buffer );
+%smallestDifferencesBetweenTargetAndCalibrationSpectrum( spectralLineIndex - indexFromSpectralLine + 1 ) = smallestDifference;
+    
+%smallestDifference = min( abs( interpolatedSpectralDataCalibrationMatrix( indexFromSpectralLine : indexToSpectralLine, : ) - targetSpectrumRelative ) );
+%smallestDifferencesBetweenTargetAndCalibrationSpectrum( indexFromSpectralLine : end - indexToSpectralLine ) = smallestDifference;
 
 maxDifference = max( smallestDifferencesBetweenTargetAndCalibrationSpectrum );
 correctionFactor = ( 1 - maxDifference);
-disp( sprintf( 'correction factor for spectrum: %3.3f', correctionFactor ) );
+disp( sprintf( 'maximum level factor for spectrum: %3.3f', correctionFactor ) );
 targetSpectrumRelative = ( correctionFactor * dimFactor ) .* targetSpectrumRelative ;
 
 % targetSpectrum adaption
@@ -88,18 +83,6 @@ for spectralLineIndex = 1 : numberOfSpectralLines
     spectralRadianceData( spectralLineIndex ) = radianceOfCurrentSpectralLine;
 end
 disp('');
-
-
-%easyhack:
-% xenonSpectrum = interpolatedSpectralDataCalibrationMatrix( end, : );
-% invertedXenonSpectrum = 1 ./ xenonSpectrum;
-% targetXenonSpectrum = invertedXenonSpectrum .* targetSpectrum';
-%
-% targetXenonSpectrum(1:64) = 0;
-% targetXenonSpectrum( 3 : end ) = targetXenonSpectrum( 1 : end - 2);
-%
-% ol490DimValueSpectrumCorrected = targetXenonSpectrum / max( targetXenonSpectrum ) * OL490MAX * dimFactor;
-
 
 %calc luminance for current spectrum
 Lv = calcPhotopicLuminanceFromSpectrum( spectralRadianceData' );
