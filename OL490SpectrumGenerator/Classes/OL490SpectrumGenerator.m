@@ -138,6 +138,11 @@ classdef OL490SpectrumGenerator < handle
                 else
                     disp( 'no calibration file found' );
                 end
+                
+                if( ~isempty( obj.ol490Calibration ) )
+                fprintf( 'Using calibration file with date: %s\n', obj.ol490Calibration.calibrationDate );
+                end
+                
             end
             value = obj.ol490Calibration;
         end
