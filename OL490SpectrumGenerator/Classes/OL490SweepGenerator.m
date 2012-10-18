@@ -12,8 +12,8 @@ classdef OL490SweepGenerator < handle
         ol490SpectrumArrayDown      % inverted ol490SpectrumArrayUp
         %minDimLevelRatio        % dimFactor for lowest dimLevel as factor on Lv of ol490Spectrum
         %maxDimLevelRatio        % dimFactor for highest dimLevel as factor on Lv of ol490Spectrum
-        minDesiredLv            % this is the Lv where we start
-        maxDesiredLv             % this is the Lv where we end
+        minDesiredRatio            % this is the Lv where we start
+        maxDesiredRatio             % this is the Lv where we end
         sweepType               % sweep type: linear, logarithmic (lin, log)
         sweepMode               % sweepUp or sweepDown
         sweepTime               % time for whole sweep
@@ -34,14 +34,14 @@ classdef OL490SweepGenerator < handle
     
     methods
         %% constructor
-        function obj = OL490SweepGenerator( ol490Spectrum, sweepTime, sweepType, sweepMode, sweepSteps, minDesiredLv, maxDesiredLv )
+        function obj = OL490SweepGenerator( ol490Spectrum, sweepTime, sweepType, sweepMode, sweepSteps, minDesiredRatio, maxDesiredRatio )
             obj.ol490Spectrum = ol490Spectrum;
             obj.sweepTime = sweepTime;
             obj.sweepSteps = sweepSteps;
             obj.sweepMode = sweepMode;
             obj.sweepType = sweepType;
-            obj.minDesiredLv = minDesiredLv;
-            obj.maxDesiredLv = maxDesiredLv;
+            obj.minDesiredRatio = minDesiredRatio;
+            obj.maxDesiredRatio = maxDesiredRatio;
             obj.currentSweepIndex = 1;
             
             obj.sweepPeriod = obj.sweepTime / obj.sweepSteps;
@@ -91,10 +91,10 @@ classdef OL490SweepGenerator < handle
             obj.currentSweepIndex = 1;
             
             %generate dimLevels
-            minDesiredLv = obj.minDesiredLv;
-            maxDesiredLv = obj.maxDesiredLv;
+            minDesiredRatio = obj.minDesiredRatio;
+            maxDesiredRatio = obj.maxDesiredRatio;
             if( strcmp( obj.sweepType, 'lin' ) )
-                dimLevelArray = linspace( minDesiredLv, maxDesiredLv, numberOfSweepSteps );
+                dimLevelArray = linspace( minDesiredRatio, maxDesiredRatio, numberOfSweepSteps );
             elseif( strcmp( obj.sweepType, 'log' ) )
                 tao = 35;
                 steps = linspace( 0, numberOfSweepSteps, numberOfSweepSteps );
@@ -105,7 +105,7 @@ classdef OL490SweepGenerator < handle
                 dimValues = dimValues + minimum;
                 maximum = max( dimValues );
                 dimValues = dimValues / maximum;
-                dimValues = dimValues * maxDesiredLv;
+                dimValues = dimValues * maxDesiredRatio;
                 dimLevelArray = dimValues;
             else
                 error( 'unkown sweepType' );
