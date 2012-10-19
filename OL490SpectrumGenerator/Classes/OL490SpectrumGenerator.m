@@ -206,7 +206,7 @@ classdef OL490SpectrumGenerator < handle
             %CS2000_initConnection();
             [message1, message2, actualCS2000Measurement, colorimetricNames] = CS2000_measure();
             %CS2000_terminateConnection();
-            pause( 1 );
+            %pause( 1 );
             
             %prepare save
             currentTimeString = datestr( now, 'dd-mmm-yyyy_HH_MM_SS' );
