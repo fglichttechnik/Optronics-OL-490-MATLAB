@@ -15,12 +15,19 @@ classdef OL490SpectrumGenerator < handle
         filePathToCalibrationData   % filePath to calibration data
         %olType                      % target, background or glare OL490
         correctionFactor            % correctionFactor (discrepancy between desired and measured Lv)
-        peripheralCorrectionFactor  % correction factor if presented on peripheral position due to inhomogenity
+        peripheralCorrectionFactorTarget  % correction factor if presented on peripheral position due to inhomogenity
+        peripheralCorrectionFactorBackground  % correction factor if presented on peripheral position due to inhomogenity
         %spectralCorrectionFactor    % correctionFactor for discrepandy between desired and measured Spectrum
-        ol490Calibration            % calibration data
+        
         ol490Sweep                  % sweep to ol490Spectrum
         documentedCS2000Measurement % for documentation purposes
         correctionCS2000Measurement % for documentation purposes
+		end
+		properties(Dependent)
+		ol490Calibration            % calibration data
+        end
+    properties(Access=private)
+        ol490CalibrationInternal    % for internal use only
     end
     
     methods
@@ -33,7 +40,8 @@ classdef OL490SpectrumGenerator < handle
             %obj.olType = olType;
             obj.targetSpectrumTag = targetSpectrumTag;
             obj.correctionFactor = 1;
-            obj.peripheralCorrectionFactor = 1;
+            obj.peripheralCorrectionFactorTarget = 1;
+            obj.peripheralCorrectionFactorBackground = 1;
             %obj.spectralCorrectionFactor = ones( size( obj.targetSpectrum ) );
         end
         
@@ -129,22 +137,27 @@ classdef OL490SpectrumGenerator < handle
         
         %% get.ol490Calibration
         function value = get.ol490Calibration( obj )
-            if( isempty( obj.ol490Calibration ) )
+            if( isempty( obj.ol490CalibrationInternal ) )
                 load( obj.filePathToCalibrationData );
-                if( exist( 'ol490CalibrationBackground' ) )
-                    obj.ol490Calibration = ol490CalibrationBackground;
-                elseif( exist( 'ol490CalibrationTarget' ) )
-                    obj.ol490Calibration = ol490CalibrationTarget;
+                if( exist( 'ol490CalibrationBackground', 'var' ) )
+                    obj.ol490CalibrationInternal = ol490CalibrationBackground;
+                elseif( exist( 'ol490CalibrationTarget', 'var' ) )
+                    obj.ol490CalibrationInternal = ol490CalibrationTarget;
                 else
                     disp( 'no calibration file found' );
                 end
                 
-                if( ~isempty( obj.ol490Calibration ) )
-                fprintf( 'Using calibration file with date: %s\n', obj.ol490Calibration.calibrationDate );
+                if( ~isempty( obj.ol490CalibrationInternal ) )
+                fprintf( 'Using calibration file with date: %s\n', obj.ol490CalibrationInternal.calibrationDate );
                 end
                 
             end
-            value = obj.ol490Calibration;
+            value = obj.ol490CalibrationInternal;
+        end
+        
+        %% set.ol490Calibration
+        function set.ol490Calibration( obj, newCalibration )            
+            obj.ol490CalibrationInternal = newCalibration;
         end
         
         %% calculateLuminancCorrectionFactor

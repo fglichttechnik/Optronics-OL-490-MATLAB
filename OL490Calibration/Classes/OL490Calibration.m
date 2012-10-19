@@ -47,7 +47,7 @@ classdef OL490Calibration < handle
         
         %% init devices
         function [ obj ] = init( obj )
-            obj.initCS2000();
+            %obj.initCS2000();
             obj.initOL490();
         end
         
@@ -243,19 +243,20 @@ classdef OL490Calibration < handle
              %   dimStepIncreasePrecise = toValueOfPreciseMeasurements / ( numberOfPreciseDimLevels - 1 );
                 
                 % 1 percent steps from 0 to 20
-                dimLevelArrayLow = 0.0 : 0.01 : 0.2;
+                %dimLevelArrayLow = 0.0 : 0.01 : 0.2;
                 % 5 percent steps from 20 to 100
-                dimLevelArrayHigh = 0.25 : 0.05 : 1.0;
-                dimLevelArray = [ dimLevelArrayLow, dimLevelArrayHigh ];
-                numberOfDimLevels = length ( dimLevelArray );
+                %dimLevelArrayHigh = 0.25 : 0.05 : 1.0;
+                %dimLevelArray = [ dimLevelArrayLow'; dimLevelArrayHigh' ];
+                dimLevelArray = 0.0 : 0.01 : 1.0; 
+                obj.numberOfDimLevels = length ( dimLevelArray );
                 
-                calibrationSpectrumCellArray = cell( numberOfDimLevels, 1 );
-                obj.calibrationSpectrumDimLevelArray = zeros( numberOfDimLevels, 1 );
+                calibrationSpectrumCellArray = cell( obj.numberOfDimLevels, 1 );
+                obj.calibrationSpectrumDimLevelArray = zeros( obj.numberOfDimLevels, 1 );
                 
                 OL490_MAX_VALUE = 49152;
                 
                 currentDimValue = 0;    %will increase by dimStepIncrease each step
-                for currentSpectrumIndex = 1 : numberOfDimLevels %+ numberOfPreciseDimLevels
+                for currentSpectrumIndex = 1 : obj.numberOfDimLevels %+ numberOfPreciseDimLevels
                 currentDimValue = dimLevelArray( currentSpectrumIndex );
                     currentSpectrum = ones( 1024, 1 ) * OL490_MAX_VALUE * currentDimValue;
                     calibrationSpectrum = OL490CalibrationSpectrum( currentSpectrum, currentDimValue );

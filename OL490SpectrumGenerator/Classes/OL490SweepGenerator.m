@@ -25,7 +25,8 @@ classdef OL490SweepGenerator < handle
     properties(Dependent)
         currentSweepSpectrum    % current ol490Spectrum for currentSweepIndex (auto increments currentSweepIndex on each call)
         currentSweepSpectrumAtCurrentIndex    % current ol490Spectrum for currentSweepIndex (without auto increments currentSweepIndex on each call)
-        
+        minLv
+        maxLv
     end
     
     events
@@ -45,6 +46,18 @@ classdef OL490SweepGenerator < handle
             obj.currentSweepIndex = 1;
             
             obj.sweepPeriod = obj.sweepTime / obj.sweepSteps;
+        end
+        
+        %% get.minLv
+        function value = get.minLv ( obj )
+            desiredLv = obj.ol490Spectrum.desiredLv;
+            value = obj.minDesiredRatio * desiredLv;
+        end
+        
+        %% get.maxLv
+        function value = get.maxLv ( obj )
+            desiredLv = obj.ol490Spectrum.desiredLv;
+            value = obj.maxDesiredRatio * desiredLv;
         end
         
         %% get.currentSweepSpectrumAtCurrentIndex
@@ -132,8 +145,8 @@ classdef OL490SweepGenerator < handle
             for currentDimLevelIndex = 1 : numberOfSweepSteps
                 obj.ol490SpectrumArrayDown{ currentDimLevelIndex } = obj.ol490SpectrumArrayUp{ numberOfSweepSteps - currentDimLevelIndex + 1 };
             end
-         
-
+            
+            
         end
         
         %% attachCorrectionFactorsToSweepSpectra
@@ -142,6 +155,15 @@ classdef OL490SweepGenerator < handle
                 currentSpectrum = obj.ol490SpectrumArrayUp{ currentIndex };
                 currentCorrectionFactor = correctionFactorArray( currentIndex );
                 currentSpectrum.correctionFactor = currentCorrectionFactor;
+            end
+        end
+        
+        %% attachPeripheralCorrectionFactorsToSweepSpectra
+        function attachPeripheralCorrectionFactorsToSweepSpectra( obj, correctionFactorTarget )
+            for currentIndex = 1 : obj.sweepSteps
+                currentSpectrum = obj.ol490SpectrumArrayUp{ currentIndex };
+                currentCorrectionFactorTarget = correctionFactorTarget;
+                currentSpectrum.peripheralCorrectionFactorTarget = currentCorrectionFactorTarget;
             end
         end
         

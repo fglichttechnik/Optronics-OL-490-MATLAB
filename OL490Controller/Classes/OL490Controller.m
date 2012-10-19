@@ -66,12 +66,19 @@ classdef OL490Controller < handle
             obj.ol_obj.TurnOnColumn( int64( olSpectrum ) );
         end
         
-        %% send a ol490SpectrumInstance with peripheral correction
-        function obj = sendPeripheralSpectrum( obj, currentSpectrum )
-            disp( sprintf( 'correcting spectrum with %1.2f and peripheral %1.2f (desireddLv: %2.3f)', currentSpectrum.correctionFactor, currentSpectrum.peripheralCorrectionFactor, currentSpectrum.desiredLv ) );
-            olSpectrum = currentSpectrum.ol490Spectrum.spectrum * currentSpectrum.correctionFactor * currentSpectrum.peripheralCorrectionFactor;
+        %% send a ol490SpectrumInstance with extra correction factor (e.g. peripheral correction)
+        function obj = sendSpectrumWithCorrectionFactor( obj, currentSpectrum, correctionFactor )
+            disp( sprintf( 'correcting spectrum with %1.2f (desireddLv: %2.3f) and peripheralCorrection: %1.2f', currentSpectrum.correctionFactor, currentSpectrum.desiredLv, correctionFactor ) );
+            olSpectrum = currentSpectrum.ol490Spectrum.spectrum * currentSpectrum.correctionFactor * correctionFactor;
             obj.ol_obj.TurnOnColumn( int64( olSpectrum ) );
         end
+        
+%         %% send a ol490SpectrumInstance with peripheral correction
+%         function obj = sendPeripheralSpectrum( obj, currentSpectrum )
+%             disp( sprintf( 'correcting spectrum with %1.2f and peripheral %1.2f (desireddLv: %2.3f)', currentSpectrum.correctionFactor, currentSpectrum.peripheralCorrectionFactor, currentSpectrum.desiredLv ) );
+%             olSpectrum = currentSpectrum.ol490Spectrum.spectrum * currentSpectrum.correctionFactor * currentSpectrum.peripheralCorrectionFactor;
+%             obj.ol_obj.TurnOnColumn( int64( olSpectrum ) );
+%         end
         
         
         %% send a raw ol490Spectrum
