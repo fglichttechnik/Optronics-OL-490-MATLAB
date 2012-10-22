@@ -71,9 +71,9 @@ classdef OL490SweepGenerator < handle
             end
             
             %get corresponding sweep spectrum
-            if( strcmp( obj.sweepMode, 'sweepUp' ) )
+            if( strcmp( obj.sweepMode, 'SweepUp' ) )
                 value = obj.ol490SpectrumArrayUp{ obj.currentSweepIndex };
-            elseif( strcmp( obj.sweepMode, 'sweepDown' ) )
+            elseif( strcmp( obj.sweepMode, 'SweepDown' ) )
                 value = obj.ol490SpectrumArrayDown{ obj.currentSweepIndex };
             else
                 disp( 'unknown sweep mode' );
