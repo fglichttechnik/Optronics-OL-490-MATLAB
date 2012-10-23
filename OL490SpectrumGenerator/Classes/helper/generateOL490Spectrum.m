@@ -86,6 +86,9 @@ disp('');
 
 %calc luminance for current spectrum
 Lv = calcPhotopicLuminanceFromSpectrum( spectralRadianceData' );
+%we only need 3 decimal numbers
+Lv = round( Lv * 1000 ) / 1000;
+
 disp( sprintf( 'luminance of spectrum %3.3f cd/m^2', Lv ) );
 
 ol490TargetSpectrum = OL490TargetSpectrum( ol490DimValueSpectrumCorrected', dimFactor, Lv );
