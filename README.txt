@@ -25,7 +25,7 @@ ol490Controller.init( filePathToOptronicsFiles );
 %send some data:
 OL490_MAX_VALUE = 49152;
 ol490Controller.sendOLSpectrum( ones( 1024, 1 ) * OL490_MAX_VALUE );
-ol490Controller.sendOLSpectrum.openShutter();
+ol490Controller.openShutter();
 
 ol490CreateCalibration.m 
 call this file to create a calibration file and an adjusted spectrum
